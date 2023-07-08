@@ -1,0 +1,57 @@
+body {
+    background-color: #333;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+}
+
+#stars {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    background: transparent;
+}
+
+#stars:before, #stars:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: transparent;
+    z-index: -1;
+}
+
+#name {
+    font-size: 3em;
+    text-align: center;
+    color: transparent;
+    background: linear-gradient(90deg, #8e2de2, #4a00e0);
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: gradient 5s ease infinite;
+}
+
+@keyframes gradient {
+    0% {background-position: 0%;}
+    50% {background-position: 100%;}
+    100% {background-position: 0%;}
+}
+
+#links {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+}
+
+#links a {
+    color: #fff;
+    margin: 0 10px;
+}
