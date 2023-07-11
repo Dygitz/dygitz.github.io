@@ -84,21 +84,18 @@
 
 		/* Mobile responsive */
 		@media (max-width: 600px) {
-			body {
-				font-size: 16px;
-			}
-
 			#name {
-				font-size: 16px;
+				font-size: 80px;
+				word-wrap: normal;
 			}
 
 			#intro {
-				font-size: 12px;
+				font-size: 48px;
 			}
 
-			#links a svg {
-				width: 24px;
-				height: 24px;
+			#links svg a {
+				width: 100px;
+				height: 100px;
 			}
 		}
 	</style>
@@ -159,10 +156,6 @@
 					nameElement.style.width = 'auto';
 				}
 			}, 200);
-
-			window.addEventListener("resize", () => {
-				console.log("Resize")
-			});
 		}
 	</script>
 </head>
