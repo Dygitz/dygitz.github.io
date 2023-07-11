@@ -102,6 +102,8 @@
 	</style>
 	<script>
 		window.onload = function() {
+			const isMobile = window.innerWidth <= 600;
+
 			let stars = document.getElementById('stars');
 			for (let i = 0; i < (window.innerWidth / 3840) * 1000; i++) {
 				let star = document.createElement('div');
@@ -123,7 +125,7 @@
 			hiddenElement.style.fontSize = "7vw"
 			hiddenElement.style.fontFamily = "Montserrat"
 			hiddenElement.style.fontWeight = "bold"
-			if(window.innerWidth <= 600) {
+			if(isMobile) {
 				hiddenElement.style.wordWrap = "break-word"
 			}
 			hiddenElement.style.wordWrap =
@@ -135,17 +137,26 @@
 			// Get the width of the hidden element
 			const textWidth = hiddenElement.getBoundingClientRect().width;
 
+			// Get the height of the hidden element
+			const textHeight = hiddenElement.getBoundingClientRect().height
+
 			// Remove the hidden element from the document body
 			document.body.removeChild(hiddenElement);
 
 			// Create the actual text container element with the measured width
 			const textContainer = document.getElementById("text-container");
 			textContainer.style.width = textWidth + "px";
+			if(isMobile) {
+				textContainer.style.height = textHeight + "px";
+			}
 
 
 			// <-- Typing animation -->
 			const nameElement = document.getElementById('name');
 			const nameText = nameElement.innerHTML;
+			if(isMobile) {
+				nameElement.style.wordWrap = "break-word"
+			}
 			nameElement.innerHTML = 'D';
 
 			let currentIndex = 1;
