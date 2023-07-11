@@ -41,6 +41,7 @@
 			font-family: 'Montserrat';
 			font-weight: bold;
 			text-align: center;
+			width: max-content;
 			background: linear-gradient(90deg, #8e2de2, #4a00e0, #23d5ab);
 			background-size: 200% auto;
 			animation: gradient 5s ease infinite;
@@ -92,7 +93,35 @@
 				stars.appendChild(star);
 			}
 
-			// Typing animation
+			// <-- Predetermine size of text so that the typewriter effect aligns from left side of the div and fills the space -->
+			// Get the text to measure
+			const text = "Dominik Ritz";
+
+			// Create a temporary hidden element to measure the width
+			const hiddenElement = document.createElement("div");
+			hiddenElement.style.visibility = "hidden";
+			hiddenElement.style.position = "absolute";
+			hiddenElement.style.whiteSpace = "nowrap";
+			hiddenElement.style.fontSize = "7vw"
+			hiddenElement.style.fontFamily = "Montserrat"
+			hiddenElement.style.fontWeight = "bold"
+			hiddenElement.innerText = text;
+
+			// Append the hidden element to the document body
+			document.body.appendChild(hiddenElement);
+
+			// Get the width of the hidden element
+			const textWidth = hiddenElement.getBoundingClientRect().width;
+
+			// Remove the hidden element from the document body
+			document.body.removeChild(hiddenElement);
+
+			// Create the actual text container element with the measured width
+			const textContainer = document.getElementById("text-container");
+			textContainer.style.width = textWidth + "px";
+
+
+			// <-- Typing animation -->
 			const nameElement = document.getElementById('name');
 			const nameText = nameElement.innerHTML;
 			nameElement.innerHTML = 'D';
@@ -104,16 +133,22 @@
 					currentIndex++;
 				} else {
 					clearInterval(typingInterval);
+					// Convert the "hightlighting" gradient to the gradient on the text itself
 					nameElement.style.webkitTextFillColor = 'transparent';
 					nameElement.style.webkitBackgroundClip = 'text';
+					nameElement.style.width = 'auto';
 				}
 			}, 180);
+
+			window.addEventListener("resize", () => {
+				console.log("Resize")
+			});
 		}
 	</script>
 </head>
 	<body>
 		<div id="stars"></div>
-		<div>
+		<div id="text-container">
 			<div id="intro">Hi, I'm</div>
 			<div id="name">Dominik Ritz</div>
 		</div>
