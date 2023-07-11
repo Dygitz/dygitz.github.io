@@ -138,7 +138,7 @@
 			const textWidth = hiddenElement.getBoundingClientRect().width;
 
 			// Get the height of the hidden element
-			const textHeight = hiddenElement.getBoundingClientRect().height
+			const textHeight = hiddenElement.getBoundingClientRect().height;
 
 			// Remove the hidden element from the document body
 			document.body.removeChild(hiddenElement);
@@ -155,7 +155,8 @@
 			const nameElement = document.getElementById('name');
 			const nameText = nameElement.innerHTML;
 			if(isMobile) {
-				nameElement.style.wordWrap = "break-word"
+				nameElement.style.wordWrap = "break-word";
+				textContainer.style.transform=`translateY(${-0.75 * textHeight})`;
 			}
 			nameElement.innerHTML = 'D';
 
