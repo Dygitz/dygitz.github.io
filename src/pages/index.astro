@@ -137,33 +137,27 @@
 			// Get the width of the hidden element
 			const textWidth = hiddenElement.getBoundingClientRect().width;
 
-			// Get the height of the hidden element
-			const textHeight = hiddenElement.getBoundingClientRect().height;
-
 			// Remove the hidden element from the document body
 			document.body.removeChild(hiddenElement);
 
 			// Create the actual text container element with the measured width
 			const textContainer = document.getElementById("text-container");
 			textContainer.style.width = textWidth + "px";
-			if(isMobile) {
-				textContainer.style.height = textHeight + "px";
-			}
 
 
 			// <-- Typing animation -->
 			const nameElement = document.getElementById('name');
 			const nameText = nameElement.innerHTML;
-			if(isMobile) {
-				nameElement.style.wordWrap = "break-word";
-				textContainer.style.transform=`translateY(${-0.75 * textHeight})`;
-			}
 			nameElement.innerHTML = 'D';
 
 			let currentIndex = 1;
 			let typingInterval = setInterval(() => {
 				if (currentIndex < nameText.length) {
-					nameElement.innerHTML += nameText[currentIndex];
+					if (isMobile && nameText[currentIndex] == ' ') {
+						nameElement.innerHTML += '<br>';
+					} else {
+						nameElement.innerHTML += nameText[currentIndex];
+					}
 					currentIndex++;
 				} else {
 					clearInterval(typingInterval);
