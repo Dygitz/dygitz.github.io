@@ -121,7 +121,7 @@
 		}
 
 		/* Mobile responsive */
-		@media (max-width: 600px) {
+		@media (max-width: 767px) {
 			#name {
 				font-size: 64px;
 			}
@@ -135,6 +135,19 @@
 				height: 50px;
 				margin-left: 5px;
 				margin-right: 5px;
+			}
+
+			#email-container {
+				padding: 15px; /* Adjust padding as needed, but be wary of total width */
+				right: 0; /* Ensure it sticks to the right */
+				bottom: 0; /* Ensure it sticks to the bottom */
+				width: auto; /* Adjust the width or set to auto */
+				height: auto; /* Adjust the height or set to auto */
+			}
+
+			#email svg {
+				width: 10vw; /* Use viewport width to make it responsive */
+				height: auto; /* Maintain aspect ratio */
 			}
 		}
 	</style>
