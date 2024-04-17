@@ -34,7 +34,7 @@
 			left: 0;
 			width: 100%;
 			height: 100%;
-			background: transparent;
+			box-sizing: border-box;
 		}
 
 		@keyframes shimmerFloat {
@@ -156,22 +156,154 @@
 			const isMobile = window.innerWidth <= 600;
 
 			let stars = document.getElementById('stars');
-			for (let i = 0; i < (window.innerWidth / 3840) * 1000; i++) {
-				let star = document.createElement('div');
-				star.className = 'star astro-J7PV25F6';
-				// Randomly assign star sizes
-				const randomSize = 2 + Math.random();
-				star.style.width = `${randomSize}px`;
-				star.style.height = `${randomSize}px`;
-				// Random position
-				star.style.top = Math.random() * 100 + '%';
-				star.style.left = Math.random() * 100 + '%';
-				// Random timings for animation
-				const randomDelay = Math.random() * 5; // Random delay up to 5 seconds
-				star.style.animationDelay = `${randomDelay}s`;
-
-				stars.appendChild(star);
+			if (!stars) {
+				console.error('Element with id "stars" not found');
+				return;
 			}
+
+			// Scale the canvas by the device pixel ratio
+			stars.width = window.innerWidth * devicePixelRatio;
+			stars.height = window.innerHeight * devicePixelRatio;
+
+			let ctx = stars.getContext('2d');
+
+			// Scale the drawing context by the same factor
+			ctx.scale(devicePixelRatio, devicePixelRatio);
+
+			// Create an array to hold the stars
+			let starArray = [];
+
+			// Generate the stars
+			for (let i = 0; i < (window.innerWidth / 3840) * 1000; i++) {
+				let x = Math.random() * window.innerWidth;
+				let y = Math.random() * window.innerHeight;
+				let size = 1.75 + Math.random() * 1.5;
+				let angle = Math.random() * 2 * Math.PI; // Random angle in radians
+				let speed = 0.1; // Speed of the star
+				let xVelocity = speed * Math.cos(angle); // Velocity in x direction based on the angle
+				let yVelocity = speed * Math.sin(angle); // Velocity in y direction based on the angle
+				let opacity = Math.random() * 0.7 + 0.3; // Random initial opacity between 0.3 and 1
+				let opacityChange = 0.01; // Amount to change opacity each frame
+				let startTime = Date.now(); // Start time of the animation
+				let duration = Math.random() * 5000 + 5000; // Duration of the animation
+
+				// Add the star to the array
+				starArray.push({ x, y, size, xVelocity, yVelocity, opacity, opacityChange, startTime, duration });
+			}
+
+			// Create an array to hold the meteors
+			let meteorArray = [];
+
+			// Set an interval to periodically add a new meteor
+			setInterval(function() {
+				// If the number of meteors is already at the maximum, remove the oldest meteor
+				if (meteorArray.length >= 3) { // Change this value to the maximum number of meteors you want
+					meteorArray.shift();
+				}
+
+				let x = Math.random() * window.innerWidth; // Random x position anywhere on the screen
+				let y = Math.random() * window.innerHeight; // Random y position anywhere on the screen
+				let size = Math.random() * 30 + 30;
+				let speed = Math.random() * 5 + 5; // Random speed between 3 and 5
+				let angle = Math.PI / 4; // 45 degrees in radians, towards bottom left
+				let opacity = 0; // Initial opacity
+				let opacityChange = 0.04; // Amount to change opacity each frame
+
+				// Add the meteor to the array
+				meteorArray.push({ x, y, size, speed, angle, opacity, opacityChange });
+			}, 2000); // Add a new meteor every 2 seconds
+
+			// Function to update and redraw the stars
+			function animateStars() {
+				// Clear the canvas
+				ctx.clearRect(0, 0, stars.width, stars.height);
+
+				// Get the current time
+				const now = Date.now();
+
+				// Loop through the stars
+				for (let star of starArray) {
+					// Calculate the progress of the animation (0 to 1)
+					let progress = (now - star.startTime) % star.duration / star.duration;
+
+					// Apply the easing function to the progress
+					progress = 1 - Math.pow(1 - progress, 3);
+
+					// If a new animation cycle is starting, generate a new random angle for the star
+					if (progress < 0.01) {
+						let angle = Math.random() * 2 * Math.PI; // Random angle in radians
+						let speed = 0.05; // Decreased speed of the star
+						star.xVelocity = speed * Math.cos(angle); // Velocity in x direction based on the angle
+						star.yVelocity = speed * Math.sin(angle); // Velocity in y direction based on the angle
+					}
+
+					// Calculate the new position based on the progress
+					star.x += star.xVelocity * progress;
+					star.y += star.yVelocity * progress;
+
+					// If the star has moved off the screen, wrap it around to the other side
+					if (star.x < 0) star.x = stars.width;
+					else if (star.x > stars.width) star.x = 0;
+					if (star.y < 0) star.y = stars.height;
+					else if (star.y > stars.height) star.y = 0;
+
+					// Update the opacity
+					star.opacity += star.opacityChange;
+					if (star.opacity > 1) {
+						star.opacity = 1;
+						star.opacityChange = -star.opacityChange;
+					} else if (star.opacity < 0.3) {
+						star.opacity = 0.3;
+						star.opacityChange = -star.opacityChange;
+					}
+
+					// Draw the star as a circle with the new opacity
+					ctx.beginPath();
+					ctx.arc(star.x, star.y, star.size / 2, 0, 2 * Math.PI, false);
+					ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+					ctx.fill();
+				}
+
+				// Loop through the meteors
+				for (let i = 0; i < meteorArray.length; i++) {
+					let meteor = meteorArray[i];
+
+					// Update the position of the meteor
+					meteor.x -= meteor.speed * Math.cos(meteor.angle);
+					meteor.y += meteor.speed * Math.sin(meteor.angle);
+
+					// Update the opacity
+					meteor.opacity += meteor.opacityChange;
+					if (meteor.opacity > 1) {
+						meteor.opacity = 1;
+						meteor.opacityChange = -meteor.opacityChange;
+					} else if (meteor.opacity < -0.1) { // Wait until opacity is -0.1 before removing
+						meteorArray.splice(i, 1);
+						i--;
+						continue;
+					}
+
+					// Draw the meteor as a series of lines with decreasing size and opacity
+					for (let j = 0; j < meteor.size * meteor.opacity; j++) { // Multiply the size by the opacity to make the tail shorter as it disappears
+						let tailX = meteor.x + j * Math.cos(meteor.angle);
+						let tailY = meteor.y - j * Math.sin(meteor.angle);
+						let tailSize = meteor.size * Math.exp(-j / meteor.size); // Use exponential decay for size
+						let tailOpacity = meteor.opacity * Math.exp(-j / meteor.size); // Use exponential decay for opacity
+
+						ctx.beginPath();
+						ctx.moveTo(tailX, tailY);
+						ctx.lineTo(tailX + tailSize * Math.cos(meteor.angle), tailY - tailSize * Math.sin(meteor.angle));
+						ctx.strokeStyle = `rgba(255, 255, 255, ${tailOpacity})`; // Orangey yellow color with opacity
+						ctx.stroke();
+					}
+				}
+
+				// Call this function again on the next frame
+				requestAnimationFrame(animateStars);
+			}
+
+			// Start the animation
+			animateStars();
 
 			// <-- Predetermine size of text so that the typewriter effect aligns from left side of the div and fills the space -->
 			// Get the text to measure
@@ -231,7 +363,7 @@
 	</script>
 </head>
 	<body>
-	<div id="stars"></div>
+	<canvas id="stars"></canvas>
 	<div id="text-container">
 		<div id="intro">Hi, I'm</div>
 		<div id="name">Dominik Ritz</div>
