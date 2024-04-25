@@ -1,3 +1,8 @@
+---
+import LottieInteractive from '../components/LottieInteractive.svelte';
+import astronautAnimation from '/astronaut.json';
+---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,6 +58,21 @@
 			75% {
 				transform: translate(5px, -5px);
 				opacity: 0.65;
+			}
+		}
+
+		@keyframes astronautFloat {
+			0%, 100% {
+				transform: translate(0, 0);
+			}
+			25% {
+				transform: translate(-10px, 20px);
+			}
+			50% {
+				transform: translate(15px, -15px);
+			}
+			75% {
+				transform: translate(-20px, 10px);
 			}
 		}
 
@@ -363,6 +383,7 @@
 	</script>
 </head>
 	<body>
+	<LottieInteractive client:only animationData={astronautAnimation} data-astronaut/>
 	<canvas id="stars"></canvas>
 	<div id="text-container">
 		<div id="intro">Hi, I'm</div>
