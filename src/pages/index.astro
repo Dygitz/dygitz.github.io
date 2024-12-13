@@ -77,6 +77,7 @@ import astronautAnimation from '/astronaut.json';
 		}
 
 		#name {
+			visibility: hidden;
 			font-size: 7vw;
 			font-family: 'Montserrat',serif;
 			font-weight: bold;
@@ -379,6 +380,7 @@ import astronautAnimation from '/astronaut.json';
 					nameElement.style.width = 'fit-content';
 				}
 			}, 200);
+			document.getElementById('name').style.visibility = 'visible';
 		}
 	</script>
 </head>
