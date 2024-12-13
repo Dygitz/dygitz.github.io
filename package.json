@@ -16,5 +16,9 @@
     "lottie-web": "^5.12.2",
     "svelte": "^5.0.0-next.90",
     "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "flowbite": "^2.5.1",
+    "flowbite-svelte": "^0.46.15"
   }
 }
