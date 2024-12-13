@@ -1,7 +1,6 @@
 ---
 import LottieInteractive from "../components/LottieInteractive.svelte";
 import astronautAnimation from "/astronaut.json";
-import ProjectCard from "../components/ProjectCard.svelte";
 ---
 
 <!doctype html>
@@ -161,91 +160,38 @@ import ProjectCard from "../components/ProjectCard.svelte";
 				cursor: pointer;
 			}
 
-			.projects-section {
-				min-height: 100vh;
-				padding: 50px 20px;
-				background-color: rgba(34, 34, 34, 0.9);
-			}
-
-			.projects-title {
-				font-size: 3rem;
-				color: #fff;
-				text-align: center;
-				margin-bottom: 30px;
-				font-family: "Montserrat", serif;
-			}
-
-			.projects-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-				gap: 30px;
-				max-width: 1200px;
-				margin: 0 auto;
-				padding: 0 20px;
-			}
-
-			.project-card {
-				background-color: rgba(74, 0, 224, 0.1);
-				border: 2px solid #4a00e0;
-				border-radius: 15px;
-				overflow: hidden;
-				transition:
-					transform 0.3s ease,
-					box-shadow 0.3s ease;
-				display: flex;
-				flex-direction: column;
-			}
-
-			.project-card:hover {
-				transform: translateY(-5px);
-				box-shadow: 0 10px 20px rgba(74, 0, 224, 0.3);
-			}
-
-			.project-image {
-				width: 100%;
-				height: 200px;
-				object-fit: cover;
-				border-bottom: 2px solid #4a00e0;
-			}
-
-			.project-content {
-				padding: 20px;
-				flex-grow: 1;
-				display: flex;
-				flex-direction: column;
-				justify-content: space-between;
-			}
-
-			.project-title {
-				font-size: 1.5rem;
-				color: #fff;
-				margin-bottom: 10px;
-			}
-
-			.project-description {
-				font-size: 1rem;
-				color: #ccc;
-				margin-bottom: 15px;
-			}
-
-			.project-link {
-				display: inline-block;
-				padding: 8px 15px;
-				background-color: #4a00e0;
-				color: #fff;
-				text-decoration: none;
-				border-radius: 5px;
-				transition: background-color 0.3s ease;
-				align-self: flex-start;
-			}
-
-			.project-link:hover {
-				background-color: #6d18e2;
-			}
-
 			.typing-line {
 				width: fit-content;
 				margin: 0 auto;
+			}
+
+			#scroll-indicator {
+				position: fixed;
+				scale: 3;
+				bottom: 8%;
+				left: 50%;
+				animation: bounce 2s infinite;
+				z-index: 100;
+			}
+
+			#scroll-indicator svg {
+				color: white;
+			}
+
+			@keyframes bounce {
+				0%,
+				20%,
+				50%,
+				80%,
+				100% {
+					transform: translate(-10%, 0);
+				}
+				40% {
+					transform: translate(-10%, -20px);
+				}
+				60% {
+					transform: translate(-10%, -10px);
+				}
 			}
 
 			/* Mobile responsive */
@@ -287,10 +233,6 @@ import ProjectCard from "../components/ProjectCard.svelte";
 				#email svg {
 					width: 12vw;
 					height: auto;
-				}
-
-				.projects-grid {
-					grid-template-columns: 1fr;
 				}
 			}
 		</style>
@@ -605,67 +547,6 @@ import ProjectCard from "../components/ProjectCard.svelte";
 			</div>
 		</div>
 
-		<div class="projects-section">
-			<h2 class="projects-title">My Projects</h2>
-			<div class="projects-grid">
-				<div class="project-card">
-					<img
-						src="/placeholder-project-1.jpg"
-						alt="Project 1"
-						class="project-image"
-					/>
-					<div class="project-content">
-						<h3 class="project-title">Project 1</h3>
-						<p class="project-description">
-							Description of Project 1
-						</p>
-						<a href="#" class="project-link">View Project</a>
-					</div>
-				</div>
-				<div class="project-card">
-					<img
-						src="/placeholder-project-2.jpg"
-						alt="Project 2"
-						class="project-image"
-					/>
-					<div class="project-content">
-						<h3 class="project-title">Project 2</h3>
-						<p class="project-description">
-							Description of Project 2
-						</p>
-						<a href="#" class="project-link">View Project</a>
-					</div>
-				</div>
-				<div class="project-card">
-					<img
-						src="/placeholder-project-3.jpg"
-						alt="Project 3"
-						class="project-image"
-					/>
-					<div class="project-content">
-						<h3 class="project-title">Project 3</h3>
-						<p class="project-description">
-							Description of Project 3
-						</p>
-						<a href="#" class="project-link">View Project</a>
-					</div>
-				</div>
-				<div class="project-card">
-					<img
-						src="/placeholder-project-4.jpg"
-						alt="Project 4"
-						class="project-image"
-					/>
-					<div class="project-content">
-						<h3 class="project-title">Project 4</h3>
-						<p class="project-description">
-							Description of Project 4
-						</p>
-						<a href="#" class="project-link">View Project</a>
-					</div>
-				</div>
-			</div>
-		</div>
 		<!-- Email -->
 		<div id="email-container">
 			<a id="email" href="mailto:dom_ritz@icloud.com" target="_blank">
@@ -681,6 +562,24 @@ import ProjectCard from "../components/ProjectCard.svelte";
 					></path></svg
 				>
 			</a>
+		</div>
+		<div id="scroll-indicator">
+			<svg
+				class="w-6 h-6"
+				aria-hidden="true"
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				fill="none"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke="currentColor"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="m8 10 4 4 4-4"></path>
+			</svg>
 		</div>
 	</body>
 </html>
