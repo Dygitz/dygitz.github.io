@@ -1,6 +1,31 @@
 ---
 import LottieInteractive from "../components/LottieInteractive.svelte";
 import astronautAnimation from "/astronaut.json";
+import Timeline from "../components/Timeline.svelte";
+import "../styles/global.css";
+
+const jobs = [
+	{
+		dateRange: "2021 - Current",
+		title: "Job 4",
+		description: "Customer Success Representative.",
+	},
+	{
+		dateRange: "2019 - 2021",
+		title: "Job 3",
+		description: "Project Management, System Administrator.",
+	},
+	{
+		dateRange: "2018 - 2019",
+		title: "Job 2",
+		description: "Support Specialist.",
+	},
+	{
+		dateRange: "2017 - 2018",
+		title: "Job 1",
+		description: "Debugging, Code QA.",
+	},
+];
 ---
 
 <!doctype html>
@@ -80,9 +105,11 @@ import astronautAnimation from "/astronaut.json";
 			.hero-section {
 				height: 100vh;
 				display: flex;
+				flex-direction: column;
 				align-items: center;
 				justify-content: center;
 				position: relative;
+				overflow: hidden;
 			}
 
 			#name {
@@ -131,6 +158,7 @@ import astronautAnimation from "/astronaut.json";
 			}
 
 			#links {
+				margin-top: 2rem;
 				position: absolute;
 				bottom: 10px;
 				width: 100%;
@@ -140,6 +168,7 @@ import astronautAnimation from "/astronaut.json";
 			#links a {
 				color: transparent;
 				margin: 0 0.3vw;
+				display: inline-block;
 			}
 
 			.links-icons:hover path {
@@ -158,6 +187,7 @@ import astronautAnimation from "/astronaut.json";
 				border: none;
 				border-radius: 5px;
 				cursor: pointer;
+				margin-left: 1vw;
 			}
 
 			.typing-line {
@@ -166,11 +196,12 @@ import astronautAnimation from "/astronaut.json";
 			}
 
 			#scroll-indicator {
-				position: fixed;
+				position: absolute;
 				scale: 3;
 				bottom: 8%;
 				left: 50%;
 				animation: bounce 2s infinite;
+				transition: opacity 0.3s ease;
 				z-index: 100;
 			}
 
@@ -196,6 +227,10 @@ import astronautAnimation from "/astronaut.json";
 
 			/* Mobile responsive */
 			@media (max-width: 767px) {
+				#scroll-indicator {
+					bottom: 12%;
+				}
+
 				#name {
 					font-size: 10vw;
 					display: flex;
@@ -498,6 +533,17 @@ import astronautAnimation from "/astronaut.json";
 					});
 				}
 			};
+			window.addEventListener("scroll", () => {
+				const scrollIndicator =
+					document.getElementById("scroll-indicator");
+				if (window.scrollY > 0) {
+					scrollIndicator.style.opacity = "0";
+					scrollIndicator.style.pointerEvents = "none";
+				} else {
+					scrollIndicator.style.opacity = "1";
+					scrollIndicator.style.pointerEvents = "auto";
+				}
+			});
 		</script>
 	</head>
 	<body>
@@ -581,5 +627,20 @@ import astronautAnimation from "/astronaut.json";
 					d="m8 10 4 4 4-4"></path>
 			</svg>
 		</div>
+		<section style="padding-top:6rem;">
+			<h2
+				style="
+        text-align: center; 
+        color: #fff; 
+        font-family: Montserrat, sans-serif; 
+        font-size: 2.5rem; 
+        margin-bottom: 2rem;
+      "
+			>
+				Experience
+			</h2>
+			<!-- Ensure client-side rendering for transitions -->
+			<Timeline client:load items={jobs} />
+		</section>
 	</body>
 </html>
