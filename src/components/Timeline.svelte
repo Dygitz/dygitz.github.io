@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   export let items = [
     {
       dateRange: "2021 - Current",
@@ -26,14 +27,30 @@
     }
   ];
 
-  // The top item is the most recent, so we assume items are given in descending order
-  // If not, you can reverse them or sort as necessary.
+  let visibleItems = new Set();
 
-  // We'll alternate sides: top (most recent) on the right side, next on the left, and so forth
-  // Just a simple alternating pattern. You can customize this logic as needed.
   function getSide(index) {
     return index % 2 === 0 ? 'right' : 'left';
   }
+
+  onMount(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          visibleItems = visibleItems.add(entry.target.dataset.index);
+        }
+      });
+    }, { 
+      threshold: 0.1,
+      rootMargin: '50px'
+    });
+
+    document.querySelectorAll('.timeline-item').forEach(item => {
+      observer.observe(item);
+    });
+
+    return () => observer.disconnect();
+  });
 </script>
 
 <style>
@@ -71,18 +88,30 @@
     border-radius: 5px;
     color: #fff;
     z-index: 1;
+    opacity: 0;
+    transform: translateY(0);
+    transition: all 0.5s ease-out;
+  }
+
+  .visible {
+    opacity: 1;
+    transform: translateX(3.8%) translateY(0) !important;
   }
 
   .timeline-item[data-side="left"] {
     float: left;
     clear: both;
-    transform: translateX(3.8%);
+    transform: translateX(-50px);
   }
 
   .timeline-item[data-side="right"] {
     float: right;
     clear: both;
-    transform: translateX(-3.7%);
+    transform: translateX(50px);
+  }
+
+  .timeline-item[data-side="right"].visible {
+    transform: translateX(-3.7%) translateY(0) !important;
   }
 
   .timeline-item:before {
@@ -146,7 +175,6 @@
     letter-spacing: 0.5px;    /* Slight letter spacing for elegance */
   }
 
-
   /* Clearfix */
   .timeline-container::after {
     content: "";
@@ -160,6 +188,10 @@
       width: 80%;
       float: none;
       margin: 2rem auto;
+      transform: translateX(-30px) !important;
+    }
+
+    .timeline-item.visible {
       transform: translateX(0) !important;
     }
 
@@ -180,8 +212,10 @@
   {#each items as item, i}
     <div
       class="timeline-item"
+      class:visible={visibleItems.has(i.toString())}
       data-side={getSide(i)}
-      style="margin-top:{i===0?'0':'2rem'}"
+      data-index={i}
+      style="margin-top:{i===0?'0':'2rem'}; transition-delay: {i * 150}ms;"
     >
       <div class="item-date">{item.dateRange}</div>
       <div class="item-title">{item.title}</div>
