@@ -8,32 +8,44 @@ const jobs = [
 	{
 		dateRange: "January 2025 - Current",
 		title: "Software Engineering Intern",
-		description: "Hamming AI (YC S24)",
+		company: "Hamming AI (YC S24)",
+		description: "description",
+	},
+	{
+		dateRange: "Oct 2024 - Current",
+		title: "Member",
+		company: "Cohere For AI",
+		description: "description",
 	},
 	{
 		dateRange: "Feb 2024 - Oct 2024",
 		title: "Autonomous Software Developer",
-		description: "WATonomous",
+		company: "WATonomous",
+		description: "description",
 	},
 	{
 		dateRange: "May 2024 - Aug 2024",
 		title: "Software Engineering Intern",
-		description: "Carnegie Mellon University CyLab Biometrics Center",
+		company: "Carnegie Mellon University CyLab Biometrics Center",
+		description: "description",
 	},
 	{
 		dateRange: "May 2023 - Jun 2023",
 		title: "Data Science Intern",
-		description: "MBR Technology",
+		company: "MBR Technology",
+		description: "description",
 	},
 	{
 		dateRange: "Jun 2022 - Aug 2022",
 		title: "Software Engineering Intern",
-		description: "Palturai",
+		company: "Palturai",
+		description: "description",
 	},
 	{
 		dateRange: "Jun 2021 - Aug 2021",
 		title: "Software Engineering Intern",
-		description: "Palturai",
+		company: "Palturai",
+		description: "description",
 	},
 ];
 ---
@@ -169,10 +181,11 @@ const jobs = [
 
 			#links {
 				margin-top: 2rem;
-				position: absolute;
+				position: fixed; /* Change to fixed */
 				bottom: 10px;
-				width: 100%;
-				text-align: center;
+				left: 10px; /* Stick to the bottom left */
+				width: auto; /* Adjust width */
+				text-align: left; /* Align text to the left */
 			}
 
 			#links a {
@@ -208,7 +221,7 @@ const jobs = [
 			#scroll-indicator {
 				position: absolute;
 				scale: 3;
-				bottom: 8%;
+				bottom: 5%;
 				left: 50%;
 				animation: bounce 2s infinite;
 				transition: opacity 0.3s ease;
@@ -238,7 +251,7 @@ const jobs = [
 			/* Mobile responsive */
 			@media (max-width: 767px) {
 				#scroll-indicator {
-					bottom: 12%;
+					bottom: 7%;
 				}
 
 				#name {

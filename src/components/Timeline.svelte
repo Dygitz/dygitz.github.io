@@ -3,21 +3,25 @@
     {
       dateRange: "2021 - Current",
       title: "Job 4",
+      company: "Company 4",
       description: "Customer Success Representative.",
     },
     {
       dateRange: "2019 - 2021",
       title: "Job 3",
+      company: "Company 3",
       description: "Project Management, System Administrator.",
     },
     {
       dateRange: "2018 - 2019",
       title: "Job 2",
+      company: "Company 2",
       description: "Support Specialist.",
     },
     {
       dateRange: "2017 - 2018",
       title: "Job 1",
+      company: "Company 1",
       description: "Debugging, Code QA.",
     }
   ];
@@ -130,6 +134,19 @@
     color: #fff;
   }
 
+  .item-company {
+    font-size: 1rem;          /* Keep size readable */
+    font-weight: 600;         /* Make it bold but not overpowering */
+    font-style: italic;       /* Make it italic */
+    background: linear-gradient(90deg, rgba(4,137,153,1) 14%, rgba(16,155,184,1) 35%, rgba(9,146,150,1) 67%, rgba(0,212,255,1) 100%);
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-top: 0.3rem;       /* Proper spacing */
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;    /* Slight letter spacing for elegance */
+  }
+
+
   /* Clearfix */
   .timeline-container::after {
     content: "";
@@ -168,7 +185,9 @@
     >
       <div class="item-date">{item.dateRange}</div>
       <div class="item-title">{item.title}</div>
+      <div class="item-company">{item.company}</div>
       <div class="item-description">{item.description}</div>
     </div>
   {/each}
 </div>
+
