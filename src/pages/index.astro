@@ -293,6 +293,48 @@ const jobs = [
 					height: auto;
 				}
 			}
+
+			.about-section {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				padding: 6rem 2rem 2rem 2rem;
+			}
+
+			.about-card {
+				background: #333;
+				border-radius: 15px;
+				padding: 2rem;
+				max-width: 800px;
+				width: 90%;
+				margin: 0 auto;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			}
+
+			.about-title {
+				text-align: center;
+				color: #fff;
+				font-family: Montserrat, sans-serif;
+				font-size: 3.5rem;
+				margin-bottom: 2rem;
+			}
+
+			.about-content {
+				color: #fff;
+				font-family: Montserrat, sans-serif;
+				font-size: 1.1rem;
+				line-height: 1.6;
+				text-align: justify;
+			}
+
+			@media (max-width: 767px) {
+				.about-title {
+					font-size: 2.5rem;
+				}
+				.about-content {
+					font-size: 1rem;
+				}
+			}
 		</style>
 		<script>
 			window.onload = function () {
@@ -650,6 +692,22 @@ const jobs = [
 					d="m8 10 4 4 4-4"></path>
 			</svg>
 		</div>
+		<section class="about-section">
+			<h2 class="about-title">About Me</h2>
+			<div class="about-card">
+				<div class="about-content">
+					I'm a passionate software engineer with a focus on AI. I'm
+					currently a 2A Software Engineering student at the
+					University of Waterloo. The unknown piques my interest and
+					I'm always eager to learn new things. In my free time, I
+					keep up with the latest AI research, often reading papers on
+					arXiv. Outside of academics, I like cooking, traveling,
+					working out at the gym, and playing ultimate frisbee. I'm
+					always looking for opportunities to learn and grow, so feel
+					free to reach out—I'm happy to connect!
+				</div>
+			</div>
+		</section>
 		<section style="padding-top:6rem;">
 			<h2
 				style="
