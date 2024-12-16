@@ -689,12 +689,30 @@ const jobs = [
 			});
 			const blackhole = document.getElementById('cursor-blackhole');
 			if (blackhole) {
+			let currentX = 0;
+			let currentY = 0;
+			let targetX = 0;
+			let targetY = 0;
+
+			// Update the target position on mouse move
 			document.addEventListener('mousemove', (e) => {
-				blackhole.style.left = `${e.clientX}px`;
-				blackhole.style.top = `${e.clientY}px`;
+				targetX = e.clientX;
+				targetY = e.clientY;
 			});
-			} else {
-				console.error('Blackhole element not found!');
+
+			function updatePosition() {
+				const ease = 0.15; // Adjust for smoothness
+				currentX += (targetX - currentX) * ease;
+				currentY += (targetY - currentY) * ease;
+
+				// Update the blackhole's position
+				blackhole.style.left = `${currentX}px`;
+				blackhole.style.top = `${currentY}px`;
+
+				requestAnimationFrame(updatePosition);
+			}
+
+			updatePosition();
 			}
 		</script>
 	</head>
