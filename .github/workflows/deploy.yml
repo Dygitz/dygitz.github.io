@@ -17,35 +17,29 @@ jobs:
       - name: Checkout your repository
         uses: actions/checkout@v3
 
-      - name: Install Node 18
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: 18
 
-      - name: Install pnpm globally
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build your site
-        run: npx astro build
+      - name: Build site
+        run: pnpm run build
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: github-pages
-          path: dist
+          path: ./dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: github-pages
-          path: .
-
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+    environment:
