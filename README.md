@@ -4,4 +4,5 @@ This repository contains the source code for my personal portfolio website hoste
 
 The website leverages the following technologies:
 - **Astro**
+- **Svelte**
 - **GitHub Pages**
