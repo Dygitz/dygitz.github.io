@@ -221,7 +221,7 @@
 
     /* Additional margin for better spacing */
     .timeline-container {
-      padding: 2rem 0;
+      padding: 2rem 0 5rem 0; /* Added bottom padding */
     }
   }
 </style>
