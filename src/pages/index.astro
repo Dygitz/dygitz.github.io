@@ -66,6 +66,39 @@ const jobs = [
 				padding: 0;
 				font-family: "Orbitron", sans-serif;
 				overflow-x: hidden;
+				cursor: none; /* Hide the default cursor */
+			}
+
+			.cursor-blackhole {
+				position: fixed;
+				width: 80px;  /* Increased from 20px */
+				height: 80px; /* Increased from 20px */
+				border-radius: 50%;
+				background: radial-gradient(circle at center, 
+					rgba(0, 0, 0, 1) 0%, 
+					rgba(0, 0, 0, 0.9) 25%, 
+					rgba(0, 0, 0, 0.8) 40%, 
+					rgba(0, 0, 0, 0.6) 60%, 
+					rgba(0, 0, 0, 0.3) 80%, 
+					transparent 100%);
+				box-shadow: 0 0 40px 5px rgba(0, 0, 0, 0.8); /* Increased shadow to match new size */
+				pointer-events: none;
+				z-index: 9999;
+				mix-blend-mode: multiply;
+				filter: blur(2px); /* Slightly increased blur for larger size */
+			}
+
+
+			@keyframes blackholePulse {
+				0% {
+					transform: translate(-50%, -50%) scale(1);
+				}
+				50% {
+					transform: translate(-50%, -50%) scale(0.8);
+				}
+				100% {
+					transform: translate(-50%, -50%) scale(1);
+				}
 			}
 
 			.star {
@@ -654,6 +687,15 @@ const jobs = [
 					scrollIndicator.style.pointerEvents = "auto";
 				}
 			});
+			const blackhole = document.getElementById('cursor-blackhole');
+			if (blackhole) {
+			document.addEventListener('mousemove', (e) => {
+				blackhole.style.left = `${e.clientX}px`;
+				blackhole.style.top = `${e.clientY}px`;
+			});
+			} else {
+				console.error('Blackhole element not found!');
+			}
 		</script>
 	</head>
 	<body>
@@ -769,5 +811,6 @@ const jobs = [
 			<!-- Ensure client-side rendering for transitions -->
 			<Timeline client:load items={jobs} />
 		</section>
+		<div id="cursor-blackhole" class="cursor-blackhole"></div>
 	</body>
 </html>
