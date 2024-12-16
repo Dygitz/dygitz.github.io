@@ -17,16 +17,16 @@ jobs:
       - name: Checkout your repository using git
         uses: actions/checkout@v3
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9 # Specify the pnpm version you need
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18 # Specify your Node.js version
-          cache: 'pnpm' # Enable caching for pnpm
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9 # Specify the pnpm version
+          cache: 'pnpm' # Enable caching for pnpm dependencies
 
       - name: Install dependencies
         run: pnpm install
