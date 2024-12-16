@@ -17,25 +17,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7.x.x
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: 'pnpm'
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7.x.x
-          run_install: false
-        env:
-          PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
-
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm install --frozen-lockfile
+        shell: bash
 
       - name: Build
         run: pnpm run build
+        shell: bash
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v1
