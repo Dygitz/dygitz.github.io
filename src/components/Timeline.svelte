@@ -185,24 +185,43 @@
   /* Responsive */
   @media (max-width: 767px) {
     .timeline-item {
-      width: 80%;
+      width: 80%; /* Slightly reduced width */
       float: none;
       margin: 2rem auto;
-      transform: translateX(-30px) !important;
+      transform: translateY(30px) !important;
+      left: 0;
+      right: 0;
     }
 
     .timeline-item.visible {
-      transform: translateX(0) !important;
+      transform: translateY(0) !important;
+    }
+
+    .timeline-item[data-side="left"],
+    .timeline-item[data-side="right"] {
+      transform: translateY(30px) !important; /* Override any side-specific transforms */
+      float: none;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .timeline-item[data-side="left"].visible,
+    .timeline-item[data-side="right"].visible {
+      transform: translateY(0) !important;
     }
 
     .timeline-item[data-side="left"]:before,
     .timeline-item[data-side="right"]:before {
-      left: 50%;
-      transform: translateX(-50%);
+      display: none; /* Hide the dots on mobile */
     }
 
     .timeline-line {
-      left: 50%;
+      display: none; /* Hide the timeline on mobile */
+    }
+
+    /* Additional margin for better spacing */
+    .timeline-container {
+      padding: 2rem 0;
     }
   }
 </style>
