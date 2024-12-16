@@ -83,7 +83,7 @@ const jobs = [
 					transparent 100%);
 				box-shadow: 0 0 40px 5px rgba(0, 0, 0, 0.8); /* Increased shadow to match new size */
 				pointer-events: none;
-				z-index: 9999;
+				z-index: 2; /* Change from 9999 to 2 */
 				mix-blend-mode: multiply;
 				filter: blur(2px); /* Slightly increased blur for larger size */
 			}
@@ -118,6 +118,7 @@ const jobs = [
 				width: 100%;
 				height: 100%;
 				box-sizing: border-box;
+				z-index: 1; /* Add this line */
 			}
 
 			@keyframes shimmerFloat {
@@ -164,6 +165,7 @@ const jobs = [
 				justify-content: center;
 				position: relative;
 				overflow: hidden;
+				z-index: 3; /* Add this to put sections above blackhole */
 			}
 
 			#name {
@@ -218,7 +220,7 @@ const jobs = [
 				left: 10px; /* Stick to the bottom left */
 				width: auto; /* Adjust width */
 				text-align: left; /* Align text to the left */
-				z-index: 100; /* Ensure links stay on top */
+				z-index: 4; /* Change from 100 to 4 */
 			}
 
 			#links a {
@@ -259,7 +261,7 @@ const jobs = [
 				left: 50%;
 				animation: bounce 2s infinite;
 				transition: opacity 0.3s ease;
-				z-index: 100;
+				z-index: 4; /* Change from 100 to 4 */
 			}
 
 			#scroll-indicator svg {
@@ -356,6 +358,8 @@ const jobs = [
 				flex-direction: column;
 				align-items: center;
 				padding: 6rem 2rem 2rem 2rem;
+				position: relative;
+				z-index: 3; /* Add this to put sections above blackhole */
 			}
 
 			.about-card {
@@ -404,7 +408,7 @@ const jobs = [
 				align-items: center;
 				padding: 10px;
 				background: linear-gradient(to top, rgba(34, 34, 34, 0.9) 0%, rgba(34, 34, 34, 0.8) 50%, transparent 100%);
-				z-index: 100;
+				z-index: 4; /* Change from 100 to 4 */
 			}
 
 			/* Mobile responsive */
@@ -689,30 +693,30 @@ const jobs = [
 			});
 			const blackhole = document.getElementById('cursor-blackhole');
 			if (blackhole) {
-			let currentX = 0;
-			let currentY = 0;
-			let targetX = 0;
-			let targetY = 0;
+				let currentX = 0;
+				let currentY = 0;
+				let targetX = 0;
+				let targetY = 0;
 
-			// Update the target position on mouse move
-			document.addEventListener('mousemove', (e) => {
-				targetX = e.clientX;
-				targetY = e.clientY;
-			});
+				// Update the target position on mouse move
+				document.addEventListener('mousemove', (e) => {
+					targetX = e.clientX;
+					targetY = e.clientY;
+				});
 
-			function updatePosition() {
-				const ease = 0.15; // Adjust for smoothness
-				currentX += (targetX - currentX) * ease;
-				currentY += (targetY - currentY) * ease;
+				function updatePosition() {
+					const ease = 0.15; // Adjust for smoothness
+					currentX += (targetX - currentX) * ease;
+					currentY += (targetY - currentY) * ease;
 
-				// Update the blackhole's position
-				blackhole.style.left = `${currentX}px`;
-				blackhole.style.top = `${currentY}px`;
+					// Update the blackhole's position
+					blackhole.style.left = `${currentX}px`;
+					blackhole.style.top = `${currentY}px`;
 
-				requestAnimationFrame(updatePosition);
-			}
+					requestAnimationFrame(updatePosition);
+				}
 
-			updatePosition();
+				updatePosition();
 			}
 		</script>
 	</head>
@@ -814,7 +818,7 @@ const jobs = [
 				</div>
 			</div>
 		</section>
-		<section style="padding-top:6rem;">
+		<section style="padding-top:6rem; position: relative; z-index: 3;">
 			<h2
 				style="
         text-align: center; 
