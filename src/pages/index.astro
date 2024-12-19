@@ -66,7 +66,6 @@ const jobs = [
 				padding: 0;
 				font-family: "Orbitron", sans-serif;
 				overflow-x: hidden;
-				cursor: none; /* Hide the default cursor */
 			}
 
 			.cursor-blackhole {
@@ -87,8 +86,17 @@ const jobs = [
 				z-index: 2; /* Change from 9999 to 2 */
 				mix-blend-mode: multiply;
 				filter: blur(2px); /* Slightly increased blur for larger size */
+				display: none; /* Hide by default */
 			}
 
+			@media (min-width: 768px) {
+				.cursor-blackhole {
+					display: block; /* Show only on desktop */
+				}
+				body {
+					cursor: none; /* Hide cursor only on desktop */
+				}
+			}
 
 			@keyframes blackholePulse {
 				0% {
@@ -421,33 +429,20 @@ const jobs = [
 		</style>
 		<script>
 			window.onload = function () {
-				const isMobile = window.innerWidth <= 600;
-
-				let targetX = 0;
-				let targetY = 0;
-				let blackholeX = 0;
-				let blackholeY = 0;
-				let currentX = 0;
-				let currentY = 0;
-				const INFLUENCE_RADIUS = 150; // Reduced from 200
-				const GRAVITY_STRENGTH = 0.2; // Reduced from 0.5
-				const RECOVERY_RATE = 0.02;
-				const BLACK_HOLE_CORE_RADIUS = 20; // New constant for disappearing effect
-
+				const isMobile = window.innerWidth <= 767;
 				let stars = document.getElementById("stars");
 				if (!stars) {
 					console.error('Element with id "stars" not found');
 					return;
 				}
 
-				// Scale the canvas by the device pixel ratio
+				// Canvas setup (for both mobile and desktop)
 				stars.width = window.innerWidth * devicePixelRatio;
 				stars.height = window.innerHeight * devicePixelRatio;
-
 				let ctx = stars.getContext("2d");
 				ctx.scale(devicePixelRatio, devicePixelRatio);
 
-				// Create array for stars
+				// Create star array (shared between mobile and desktop)
 				let starArray = [];
 				for (let i = 0; i < (window.innerWidth / 3840) * 1000; i++) {
 					let x = Math.random() * window.innerWidth;
@@ -478,94 +473,42 @@ const jobs = [
 					});
 				}
 
-				// Meteors
-				let meteorArray = [];
-				setInterval(function () {
-					if (meteorArray.length >= 3) {
-						meteorArray.shift();
-					}
-					let x = Math.random() * window.innerWidth;
-					let y = Math.random() * window.innerHeight;
-					let size = Math.random() * 30 + 30;
-					let speed = Math.random() * 5 + 5;
-					let angle = Math.PI / 4;
-					let opacity = 0;
-					let opacityChange = 0.04;
-					meteorArray.push({
-						x,
-						y,
-						size,
-						speed,
-						angle,
-						opacity,
-						opacityChange,
-					});
-				}, 2000);
-
-				// Add these variables before the animateStars function
-				// let blackholeX = 0;
-				// let blackholeY = 0;
-				// const INFLUENCE_RADIUS = 200; // Radius of black hole's influence
-				// const GRAVITY_STRENGTH = 0.5; // Strength of gravitational pull
-				// const RECOVERY_RATE = 0.02;   // How fast stars return to normal
-
-				 // Add these utility functions for coordinate conversion
-				 function getCanvasRelativePosition(clientX, clientY) {
-					const rect = stars.getBoundingClientRect();
-					return {
-						x: (clientX - rect.left) * (stars.width / rect.width),
-						y: (clientY - rect.top) * (stars.height / rect.height)
-					};
-				}
-
-				// Update blackhole position handler
-				document.addEventListener('mousemove', (e) => {
-					targetX = e.clientX;
-					targetY = e.clientY;
-					const canvasPos = getCanvasRelativePosition(e.clientX, e.clientY);
-					blackholeX = canvasPos.x;
-					blackholeY = canvasPos.y;
-
-					// Debug output - uncomment to see coordinates
-					// console.log('Mouse:', e.clientX, e.clientY);
-					// console.log('Canvas:', blackholeX, blackholeY);
-				});
-
-				function animateStars() {
-					ctx.clearRect(0, 0, stars.width, stars.height);
-					const now = Date.now();
-
-					// Stars animation with filtered array to remove consumed stars
-					starArray = starArray.filter(star => {
-						let progress = ((now - star.startTime) % star.duration) / star.duration;
-						progress = 1 - Math.pow(1 - progress, 3);
-
-						const dx = blackholeX / devicePixelRatio - star.x;
-						const dy = blackholeY / devicePixelRatio - star.y;
-						const distance = Math.sqrt(dx * dx + dy * dy);
-
-						// Check if star is too close to black hole core
-						if (distance < BLACK_HOLE_CORE_RADIUS) {
-							return false; // Remove the star
-						}
-
-						if (distance < INFLUENCE_RADIUS) {
-							// Apply gravitational pull with normalized direction
-							const force = (INFLUENCE_RADIUS - distance) / INFLUENCE_RADIUS * GRAVITY_STRENGTH;
-							const directionX = dx / (distance || 1);
-							const directionY = dy / (distance || 1);
-							
-							star.xVelocity += directionX * force;
-							star.yVelocity += directionY * force;
-							
-							// Reduced randomness
-							star.xVelocity += (Math.random() - 0.5) * 0.05;
-							star.yVelocity += (Math.random() - 0.5) * 0.05;
-							
-							// Progressive fade out as stars get closer
-							star.opacity = Math.max(0.1, (distance - BLACK_HOLE_CORE_RADIUS) / INFLUENCE_RADIUS);
-						} else {
-							 // Return to original behavior
+				 // Meteor array setup (shared)
+				 let meteorArray = [];
+				 setInterval(function () {
+					 if (meteorArray.length >= 3) {
+						 meteorArray.shift();
+					 }
+					 let x = Math.random() * window.innerWidth;
+					 let y = Math.random() * window.innerHeight;
+					 let size = Math.random() * 30 + 30;
+					 let speed = Math.random() * 5 + 5;
+					 let angle = Math.PI / 4;
+					 let opacity = 0;
+					 let opacityChange = 0.04;
+					 meteorArray.push({
+						 x,
+						 y,
+						 size,
+						 speed,
+						 angle,
+						 opacity,
+						 opacityChange,
+					 });
+				 }, 2000);
+ 
+				 if (isMobile) {
+					 // Mobile-only animation without black hole effects
+					 function animateStarsSimple() {
+						 ctx.clearRect(0, 0, stars.width, stars.height);
+						 const now = Date.now();
+ 
+						 // Simple star animation
+						 starArray.forEach(star => {
+							 let progress = ((now - star.startTime) % star.duration) / star.duration;
+							 progress = 1 - Math.pow(1 - progress, 3);
+ 
+							 // Basic movement and shimmer
 							 star.opacity += star.opacityChange;
 							 if (star.opacity > 1) {
 								 star.opacity = 1;
@@ -574,128 +517,288 @@ const jobs = [
 								 star.opacity = 0.3;
 								 star.opacityChange = Math.abs(star.opacityChange);
 							 }
+ 
+							 // Update position
+							 star.x += star.xVelocity * progress;
+							 star.y += star.yVelocity * progress;
+ 
+							 // Wrap around edges
+							 if (star.x < 0) star.x = stars.width;
+							 else if (star.x > stars.width) star.x = 0;
+							 if (star.y < 0) star.y = stars.height;
+							 else if (star.y > stars.height) star.y = 0;
+ 
+							 // Draw star with glow effect
+							 const gradient = ctx.createRadialGradient(
+								 star.x, star.y, 0,
+								 star.x, star.y, star.size
+							 );
+							 gradient.addColorStop(0, `rgba(255, 255, 255, ${star.opacity})`);
+							 gradient.addColorStop(0.1, `rgba(255, 255, 255, ${star.opacity * 0.8})`);
+							 gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+ 
+							 ctx.beginPath();
+							 ctx.fillStyle = gradient;
+							 ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+							 ctx.fill();
+						 });
+ 
+						 // Animate meteors
+						 for (let i = 0; i < meteorArray.length; i++) {
+							let meteor = meteorArray[i];
+							meteor.x -= meteor.speed * Math.cos(meteor.angle);
+							meteor.y += meteor.speed * Math.sin(meteor.angle);
+							meteor.opacity += meteor.opacityChange;
+							if (meteor.opacity > 1) {
+								meteor.opacity = 1;
+								meteor.opacityChange = -meteor.opacityChange;
+							} else if (meteor.opacity < -0.1) {
+								meteorArray.splice(i, 1);
+								i--;
+								continue;
+							}
+	
+							for (let j = 0; j < meteor.size * meteor.opacity; j++) {
+								let tailX = meteor.x + j * Math.cos(meteor.angle);
+								let tailY = meteor.y - j * Math.sin(meteor.angle);
+								let tailSize =
+									meteor.size * Math.exp(-j / meteor.size);
+								let tailOpacity =
+									meteor.opacity * Math.exp(-j / meteor.size);
+	
+								ctx.beginPath();
+								ctx.moveTo(tailX, tailY);
+								ctx.lineTo(
+									tailX + tailSize * Math.cos(meteor.angle),
+									tailY - tailSize * Math.sin(meteor.angle),
+								);
+								ctx.strokeStyle = `rgba(255, 255, 255, ${tailOpacity})`;
+								ctx.stroke();
+							}
+						}
+ 
+						 requestAnimationFrame(animateStarsSimple);
+					 }
+ 
+					 animateStarsSimple();
+				 } else {
+					 // Desktop code with black hole effects
+					 let targetX = 0;
+					 let targetY = 0;
+					 let blackholeX = 0;
+					 let blackholeY = 0;
+					 let currentX = 0;
+					 let currentY = 0;
+					 const INFLUENCE_RADIUS = 150; // Reduced from 200
+					 const GRAVITY_STRENGTH = 0.2; // Reduced from 0.5
+					 const RECOVERY_RATE = 0.02;
+					 const BLACK_HOLE_CORE_RADIUS = 20; // New constant for disappearing effect
+ 
+					 // Add these utility functions for coordinate conversion
+					 function getCanvasRelativePosition(clientX, clientY) {
+						const rect = stars.getBoundingClientRect();
+						return {
+							x: (clientX - rect.left) * (stars.width / rect.width),
+							y: (clientY - rect.top) * (stars.height / rect.height)
+						};
+					}
+ 
+					 // Update blackhole position handler
+					 document.addEventListener('mousemove', (e) => {
+						 targetX = e.clientX;
+						 targetY = e.clientY;
+						 const canvasPos = getCanvasRelativePosition(e.clientX, e.clientY);
+						 blackholeX = canvasPos.x;
+						 blackholeY = canvasPos.y;
+ 
+						 // Debug output - uncomment to see coordinates
+						 // console.log('Mouse:', e.clientX, e.clientY);
+						 // console.log('Canvas:', blackholeX, blackholeY);
+					 });
+ 
+					 function animateStars() {
+						 ctx.clearRect(0, 0, stars.width, stars.height);
+						 const now = Date.now();
+ 
+						 // Stars animation with filtered array to remove consumed stars
+						 starArray = starArray.filter(star => {
+							 let progress = ((now - star.startTime) % star.duration) / star.duration;
+							 progress = 1 - Math.pow(1 - progress, 3);
+ 
+							 const dx = blackholeX / devicePixelRatio - star.x;
+							 const dy = blackholeY / devicePixelRatio - star.y;
+							 const distance = Math.sqrt(dx * dx + dy * dy);
+ 
+							 // Check if star is too close to black hole core
+							 if (distance < BLACK_HOLE_CORE_RADIUS) {
+								 return false; // Remove the star
+							 }
+ 
+							 if (distance < INFLUENCE_RADIUS) {
+								 // Apply gravitational pull with normalized direction
+								 const force = (INFLUENCE_RADIUS - distance) / INFLUENCE_RADIUS * GRAVITY_STRENGTH;
+								 const directionX = dx / (distance || 1);
+								 const directionY = dy / (distance || 1);
+								 
+								 star.xVelocity += directionX * force;
+								 star.yVelocity += directionY * force;
+								 
+								 // Reduced randomness
+								 star.xVelocity += (Math.random() - 0.5) * 0.05;
+								 star.yVelocity += (Math.random() - 0.5) * 0.05;
+								 
+								 // Progressive fade out as stars get closer
+								 star.opacity = Math.max(0.1, (distance - BLACK_HOLE_CORE_RADIUS) / INFLUENCE_RADIUS);
+							 } else {
+								  // Return to original behavior
+								  star.opacity += star.opacityChange;
+								  if (star.opacity > 1) {
+									  star.opacity = 1;
+									  star.opacityChange = -star.opacityChange;
+								  } else if (star.opacity < 0.3) {
+									  star.opacity = 0.3;
+									  star.opacityChange = Math.abs(star.opacityChange);
+								  }
+								  
+								  // Return to original velocity
+								  star.xVelocity += (star.originalXVelocity - star.xVelocity) * RECOVERY_RATE;
+								  star.yVelocity += (star.originalYVelocity - star.yVelocity) * RECOVERY_RATE;
+							 }
+ 
+							 // Limit maximum velocity to prevent stars from moving too fast
+							 const maxVelocity = 2;
+							 const currentVelocity = Math.sqrt(star.xVelocity * star.xVelocity + star.yVelocity * star.yVelocity);
+							 if (currentVelocity > maxVelocity) {
+								 star.xVelocity = (star.xVelocity / currentVelocity) * maxVelocity;
+								 star.yVelocity = (star.yVelocity / currentVelocity) * maxVelocity;
+							 }
+ 
+							 // Update position with velocity and progress
+							 star.x += star.xVelocity * progress;
+							 star.y += star.yVelocity * progress;
+ 
+							 if (star.x < 0) star.x = stars.width;
+							 else if (star.x > stars.width) star.x = 0;
+							 if (star.y < 0) star.y = stars.height;
+							 else if (star.y > stars.height) star.y = 0;
+ 
+							 // Draw star with glow effect
+							 const gradient = ctx.createRadialGradient(
+								 star.x, star.y, 0,
+								 star.x, star.y, star.size
+							 );
+							 gradient.addColorStop(0, `rgba(255, 255, 255, ${star.opacity})`);
+							 gradient.addColorStop(0.1, `rgba(255, 255, 255, ${star.opacity * 0.8})`);
+							 gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+ 
+							 ctx.beginPath();
+							 ctx.fillStyle = gradient;
+							 ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+							 ctx.fill();
+ 
+							 return true; // Keep the star in the array
+						 });
+ 
+						 // Automatically add new stars when too many have been consumed
+						 while (starArray.length < (window.innerWidth / 3840) * 800) {
+							 // Add new stars at the edges of the screen
+							 const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+							 let x, y;
 							 
-							 // Return to original velocity
-							 star.xVelocity += (star.originalXVelocity - star.xVelocity) * RECOVERY_RATE;
-							 star.yVelocity += (star.originalYVelocity - star.yVelocity) * RECOVERY_RATE;
-						}
-
-						// Limit maximum velocity to prevent stars from moving too fast
-						const maxVelocity = 2;
-						const currentVelocity = Math.sqrt(star.xVelocity * star.xVelocity + star.yVelocity * star.yVelocity);
-						if (currentVelocity > maxVelocity) {
-							star.xVelocity = (star.xVelocity / currentVelocity) * maxVelocity;
-							star.yVelocity = (star.yVelocity / currentVelocity) * maxVelocity;
-						}
-
-						// Update position with velocity and progress
-						star.x += star.xVelocity * progress;
-						star.y += star.yVelocity * progress;
-
-						if (star.x < 0) star.x = stars.width;
-						else if (star.x > stars.width) star.x = 0;
-						if (star.y < 0) star.y = stars.height;
-						else if (star.y > stars.height) star.y = 0;
-
-						// Draw star with glow effect
-						const gradient = ctx.createRadialGradient(
-							star.x, star.y, 0,
-							star.x, star.y, star.size
-						);
-						gradient.addColorStop(0, `rgba(255, 255, 255, ${star.opacity})`);
-						gradient.addColorStop(0.1, `rgba(255, 255, 255, ${star.opacity * 0.8})`);
-						gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-						ctx.beginPath();
-						ctx.fillStyle = gradient;
-						ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-						ctx.fill();
-
-						return true; // Keep the star in the array
-					});
-
-					// Automatically add new stars when too many have been consumed
-					while (starArray.length < (window.innerWidth / 3840) * 800) {
-						// Add new stars at the edges of the screen
-						const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
-						let x, y;
-						
-						switch(side) {
-							case 0: // top
-								x = Math.random() * window.innerWidth;
-								y = 0;
-								break;
-							case 1: // right
-								x = window.innerWidth;
-								y = Math.random() * window.innerHeight;
-								break;
-							case 2: // bottom
-								x = Math.random() * window.innerWidth;
-								y = window.innerHeight;
-								break;
-							case 3: // left
-								x = 0;
-								y = Math.random() * window.innerHeight;
-								break;
-						}
-
-						// ... add new star with same properties as initial creation ...
-						starArray.push({
-							x,
-							y,
-							size: 1.75 + Math.random() * 1.5,
-							xVelocity: (Math.random() - 0.5) * 0.2,
-							yVelocity: (Math.random() - 0.5) * 0.2,
-							opacity: Math.random() * 0.7 + 0.3,
-							opacityChange: 0.01,
-							startTime: now,
-							duration: Math.random() * 5000 + 5000,
-							originalX: x,
-							originalY: y,
-							originalXVelocity: (Math.random() - 0.5) * 0.2,
-							originalYVelocity: (Math.random() - 0.5) * 0.2
-						});
-					}
-
-					// Meteors animation
-					for (let i = 0; i < meteorArray.length; i++) {
-						let meteor = meteorArray[i];
-						meteor.x -= meteor.speed * Math.cos(meteor.angle);
-						meteor.y += meteor.speed * Math.sin(meteor.angle);
-						meteor.opacity += meteor.opacityChange;
-						if (meteor.opacity > 1) {
-							meteor.opacity = 1;
-							meteor.opacityChange = -meteor.opacityChange;
-						} else if (meteor.opacity < -0.1) {
-							meteorArray.splice(i, 1);
-							i--;
-							continue;
-						}
-
-						for (let j = 0; j < meteor.size * meteor.opacity; j++) {
-							let tailX = meteor.x + j * Math.cos(meteor.angle);
-							let tailY = meteor.y - j * Math.sin(meteor.angle);
-							let tailSize =
-								meteor.size * Math.exp(-j / meteor.size);
-							let tailOpacity =
-								meteor.opacity * Math.exp(-j / meteor.size);
-
-							ctx.beginPath();
-							ctx.moveTo(tailX, tailY);
-							ctx.lineTo(
-								tailX + tailSize * Math.cos(meteor.angle),
-								tailY - tailSize * Math.sin(meteor.angle),
-							);
-							ctx.strokeStyle = `rgba(255, 255, 255, ${tailOpacity})`;
-							ctx.stroke();
-						}
-					}
-
-					requestAnimationFrame(animateStars);
-				}
-
-				animateStars();
-
+							 switch(side) {
+								 case 0: // top
+									 x = Math.random() * window.innerWidth;
+									 y = 0;
+									 break;
+								 case 1: // right
+									 x = window.innerWidth;
+									 y = Math.random() * window.innerHeight;
+									 break;
+								 case 2: // bottom
+									 x = Math.random() * window.innerWidth;
+									 y = window.innerHeight;
+									 break;
+								 case 3: // left
+									 x = 0;
+									 y = Math.random() * window.innerHeight;
+									 break;
+							 }
+ 
+							 // ... add new star with same properties as initial creation ...
+							 starArray.push({
+								 x,
+								 y,
+								 size: 1.75 + Math.random() * 1.5,
+								 xVelocity: (Math.random() - 0.5) * 0.2,
+								 yVelocity: (Math.random() - 0.5) * 0.2,
+								 opacity: Math.random() * 0.7 + 0.3,
+								 opacityChange: 0.01,
+								 startTime: now,
+								 duration: Math.random() * 5000 + 5000,
+								 originalX: x,
+								 originalY: y,
+								 originalXVelocity: (Math.random() - 0.5) * 0.2,
+								 originalYVelocity: (Math.random() - 0.5) * 0.2
+							 });
+						 }
+ 
+						 // Meteors animation
+						 for (let i = 0; i < meteorArray.length; i++) {
+							 let meteor = meteorArray[i];
+							 meteor.x -= meteor.speed * Math.cos(meteor.angle);
+							 meteor.y += meteor.speed * Math.sin(meteor.angle);
+							 meteor.opacity += meteor.opacityChange;
+							 if (meteor.opacity > 1) {
+								 meteor.opacity = 1;
+								 meteor.opacityChange = -meteor.opacityChange;
+							 } else if (meteor.opacity < -0.1) {
+								 meteorArray.splice(i, 1);
+								 i--;
+								 continue;
+							 }
+ 
+							 for (let j = 0; j < meteor.size * meteor.opacity; j++) {
+								 let tailX = meteor.x + j * Math.cos(meteor.angle);
+								 let tailY = meteor.y - j * Math.sin(meteor.angle);
+								 let tailSize =
+									 meteor.size * Math.exp(-j / meteor.size);
+								 let tailOpacity =
+									 meteor.opacity * Math.exp(-j / meteor.size);
+ 
+								 ctx.beginPath();
+								 ctx.moveTo(tailX, tailY);
+								 ctx.lineTo(
+									 tailX + tailSize * Math.cos(meteor.angle),
+									 tailY - tailSize * Math.sin(meteor.angle),
+								 );
+								 ctx.strokeStyle = `rgba(255, 255, 255, ${tailOpacity})`;
+								 ctx.stroke();
+							 }
+						 }
+ 
+						 requestAnimationFrame(animateStars);
+					 }
+ 
+					 animateStars();
+					 
+					 // Black hole cursor code
+					 const blackhole = document.getElementById('cursor-blackhole');
+					 if (blackhole) {
+						 function updatePosition() {
+							 const ease = 0.15;
+							 currentX += (targetX - currentX) * ease;
+							 currentY += (targetY - currentY) * ease;
+ 
+							 // Remove any transform adjustment since we're using CSS transform
+							 blackhole.style.left = `${currentX}px`;
+							 blackhole.style.top = `${currentY}px`;
+ 
+							 requestAnimationFrame(updatePosition);
+						 }
+						 updatePosition();
+					 }
+				 }
+ 
 				// Measure text width (use the already defined isMobile)
 				const text = "Dominik Ritz";
 				const hiddenElement = document.createElement("div");
