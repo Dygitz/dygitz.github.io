@@ -3,10 +3,9 @@ import LottieInteractive from "../components/LottieInteractive.svelte";
 import astronautAnimation from "/astronaut.json";
 import Timeline from "../components/Timeline.svelte";
 import "../styles/global.css";
-import { Image } from 'astro:assets';
-import emailSvg from '../assets/email.svg';
 import Github from '../components/github.svelte';
 import Linkedin from '../components/linkedin.svelte';
+import Email from '../components/email.svelte';
 
 const jobs = [
 	{
@@ -1068,7 +1067,7 @@ const jobs = [
 			</div>
 			<div id="email-container">
 				<a id="email" href="mailto:dom_ritz@icloud.com" target="_blank">
-					<Image src={emailSvg} alt="Email" class="links-icons" width={80} height={60} />
+					<Email width="80px" height="60px" />
 				</a>
 			</div>
 		</div>
