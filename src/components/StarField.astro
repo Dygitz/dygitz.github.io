@@ -52,16 +52,21 @@
 <script>
 	window.addEventListener("DOMContentLoaded", () => {
 		const isMobile = window.innerWidth <= 767;
-		let stars = document.getElementById("stars");
-		if (!stars) {
-			console.error('Element with id "stars" not found');
+		const starsEl = document.getElementById("stars");
+		if (!(starsEl instanceof HTMLCanvasElement)) {
+			console.error('Canvas with id "stars" not found');
 			return;
 		}
+		const stars = starsEl;
 
 		// Canvas setup (for both mobile and desktop)
 		stars.width = window.innerWidth * devicePixelRatio;
 		stars.height = window.innerHeight * devicePixelRatio;
 		let ctx = stars.getContext("2d");
+		if (!ctx) {
+			console.error("2D rendering context not available");
+			return;
+		}
 		ctx.scale(devicePixelRatio, devicePixelRatio);
 
 		// Create star array (shared between mobile and desktop)
