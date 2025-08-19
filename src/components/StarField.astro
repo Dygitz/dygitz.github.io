@@ -109,7 +109,7 @@
 		for (let i = 0; i < starCount; i++) {
 			const x = Math.random() * window.innerWidth;
 			const y = Math.random() * window.innerHeight;
-			const size = 1.75 + Math.random() * 1.5;
+			const size = 1.5 + Math.random() * 1.0;
 			const angle = Math.random() * 2 * Math.PI;
 			const speed = 0.1;
 			const xVelocity = speed * Math.cos(angle);
@@ -389,7 +389,7 @@
 						case 3: x = 0; y = Math.random() * window.innerHeight; break;
 					}
 
-					const size = 1.75 + Math.random() * 1.5;
+					const size = 1.5 + Math.random() * 1.0;
 					const opacity = Math.random() * 0.7 + 0.3;
 					const starGraphics = createStarGraphics(size, opacity);
 					starGraphics.x = x;
