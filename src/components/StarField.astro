@@ -65,9 +65,14 @@
 		await app.init({
 			width: window.innerWidth,
 			height: window.innerHeight,
-			backgroundColor: 0x000000,
 			backgroundAlpha: 0,
 			resizeTo: window,
+
+			// Quality knobs:
+			antialias: true,                  // smoother vector edges
+			autoDensity: true,                // scales canvas CSS size vs backing pixels
+			resolution: Math.min(devicePixelRatio, 2), // cap at 2 to avoid huge textures
+			powerPreference: 'high-performance'
 		});
 
 		// Add the application to the DOM
