@@ -147,28 +147,25 @@
 			// Clear previous drawings
 			meteorGraphics.clear();
 			
-			// Draw trail segments with exponential fade
+			// Draw trail as thin line segments with exponential fade
 			const maxTrailLength = meteor.size * meteor.opacity;
-			for (let j = 0; j < maxTrailLength; j++) {
+			for (let j = 1; j < maxTrailLength; j++) {
+				const prevX = (j - 1) * Math.cos(meteor.angle);
+				const prevY = -(j - 1) * Math.sin(meteor.angle);
 				const tailX = j * Math.cos(meteor.angle);
 				const tailY = -j * Math.sin(meteor.angle);
-				const tailSize = Math.max(0.5, meteor.size * Math.exp(-j / meteor.size));
 				const tailOpacity = Math.max(0, meteor.opacity * Math.exp(-j / meteor.size));
-				
-				if (tailOpacity > 0.01 && tailSize > 0.1) {
-					// Draw trail segment as a small circle
-					meteorGraphics.circle(tailX, tailY, tailSize * 0.5);
-					meteorGraphics.fill({ 
-						color: 0xffffff, 
-						alpha: tailOpacity
-					});
+				if (tailOpacity > 0.01) {
+					meteorGraphics.moveTo(prevX, prevY);
+					meteorGraphics.lineTo(tailX, tailY);
+					meteorGraphics.stroke({ width: 2, color: 0xffffff, alpha: tailOpacity, cap: 'round' });
 				}
 			}
 			
-			// Draw the main meteor head
-			meteorGraphics.circle(0, 0, meteor.size * 0.3);
-			meteorGraphics.fill({ 
-				color: 0xffffff, 
+			// Draw a very small head as a dot
+			meteorGraphics.circle(0, 0, 0.6);
+			meteorGraphics.fill({
+				color: 0xffffff,
 				alpha: Math.max(0, meteor.opacity)
 			});
 			
