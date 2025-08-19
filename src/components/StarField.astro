@@ -140,12 +140,39 @@
 		// Meteor array
 		let meteorArray = [];
 
-		// Create meteor graphics
-		function createMeteorGraphics(size, opacity) {
-			const meteor = new Graphics();
-			meteor.circle(0, 0, size);
-			meteor.fill({ color: 0xffffff, alpha: opacity });
-			return meteor;
+		// Create meteor graphics with trail effect
+		function createMeteorGraphics(meteor) {
+			const meteorGraphics = new Graphics();
+			
+			// Clear previous drawings
+			meteorGraphics.clear();
+			
+			// Draw trail segments with exponential fade
+			const maxTrailLength = meteor.size * meteor.opacity;
+			for (let j = 0; j < maxTrailLength; j++) {
+				const tailX = j * Math.cos(meteor.angle);
+				const tailY = -j * Math.sin(meteor.angle);
+				const tailSize = Math.max(0.5, meteor.size * Math.exp(-j / meteor.size));
+				const tailOpacity = Math.max(0, meteor.opacity * Math.exp(-j / meteor.size));
+				
+				if (tailOpacity > 0.01 && tailSize > 0.1) {
+					// Draw trail segment as a small circle
+					meteorGraphics.circle(tailX, tailY, tailSize * 0.5);
+					meteorGraphics.fill({ 
+						color: 0xffffff, 
+						alpha: tailOpacity
+					});
+				}
+			}
+			
+			// Draw the main meteor head
+			meteorGraphics.circle(0, 0, meteor.size * 0.3);
+			meteorGraphics.fill({ 
+				color: 0xffffff, 
+				alpha: Math.max(0, meteor.opacity)
+			});
+			
+			return meteorGraphics;
 		}
 
 		// Add meteors periodically
@@ -164,13 +191,7 @@
 			const opacity = 0;
 			const opacityChange = 0.04;
 
-			const meteorGraphics = createMeteorGraphics(size, opacity);
-			meteorGraphics.x = x;
-			meteorGraphics.y = y;
-			meteorsContainer.addChild(meteorGraphics);
-
-			meteorArray.push({
-				graphics: meteorGraphics,
+			const meteor = {
 				x,
 				y,
 				size,
@@ -178,7 +199,15 @@
 				angle,
 				opacity,
 				opacityChange,
-			});
+			};
+
+			const meteorGraphics = createMeteorGraphics(meteor);
+			meteorGraphics.x = x;
+			meteorGraphics.y = y;
+			meteorsContainer.addChild(meteorGraphics);
+
+			meteor.graphics = meteorGraphics;
+			meteorArray.push(meteor);
 		}, 2000);
 
 		if (isMobile) {
@@ -233,9 +262,20 @@
 						continue;
 					}
 
-					meteor.graphics.x = meteor.x;
-					meteor.graphics.y = meteor.y;
-					meteor.graphics.alpha = Math.max(0, meteor.opacity);
+					// Update graphics only when opacity significantly changes (optimization)
+					if (!meteor.lastOpacityUpdate || Math.abs(meteor.opacity - meteor.lastOpacityUpdate) > 0.1) {
+						meteorsContainer.removeChild(meteor.graphics);
+						meteor.graphics.destroy();
+						meteor.graphics = createMeteorGraphics(meteor);
+						meteor.graphics.x = meteor.x;
+						meteor.graphics.y = meteor.y;
+						meteorsContainer.addChild(meteor.graphics);
+						meteor.lastOpacityUpdate = meteor.opacity;
+					} else {
+						// Just update position for better performance
+						meteor.graphics.x = meteor.x;
+						meteor.graphics.y = meteor.y;
+					}
 				}
 			});
 		} else {
@@ -389,9 +429,20 @@
 						continue;
 					}
 
-					meteor.graphics.x = meteor.x;
-					meteor.graphics.y = meteor.y;
-					meteor.graphics.alpha = Math.max(0, meteor.opacity);
+					// Update graphics only when opacity significantly changes (optimization)
+					if (!meteor.lastOpacityUpdate || Math.abs(meteor.opacity - meteor.lastOpacityUpdate) > 0.1) {
+						meteorsContainer.removeChild(meteor.graphics);
+						meteor.graphics.destroy();
+						meteor.graphics = createMeteorGraphics(meteor);
+						meteor.graphics.x = meteor.x;
+						meteor.graphics.y = meteor.y;
+						meteorsContainer.addChild(meteor.graphics);
+						meteor.lastOpacityUpdate = meteor.opacity;
+					} else {
+						// Just update position for better performance
+						meteor.graphics.x = meteor.x;
+						meteor.graphics.y = meteor.y;
+					}
 				}
 			});
 
