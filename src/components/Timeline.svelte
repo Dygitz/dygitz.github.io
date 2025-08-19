@@ -168,6 +168,7 @@
     font-weight: 600;         /* Make it bold but not overpowering */
     font-style: italic;       /* Make it italic */
     background: linear-gradient(90deg, rgba(4,137,153,1) 14%, rgba(16,155,184,1) 35%, rgba(9,146,150,1) 67%, rgba(0,212,255,1) 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
     margin-top: 0.3rem;       /* Proper spacing */
