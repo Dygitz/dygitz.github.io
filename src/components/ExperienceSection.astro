@@ -3,32 +3,74 @@ import Timeline from "./Timeline.svelte";
 import type { Job } from "../data/jobs";
 
 export interface Props {
-	jobs: Job[];
+  jobs: Job[];
 }
 
 const { jobs } = Astro.props;
 ---
 
 <section class="experience-section">
-	<h2 class="experience-title">
-		Experience
-	</h2>
-	<!-- Ensure client-side rendering for transitions -->
-	<Timeline client:load items={jobs} />
+  <h2 class="experience-title">
+    Experience
+  </h2>
+  <!-- Ensure client-side rendering for transitions -->
+  <div class="timeline-wrapper">
+    <Timeline client:load items={jobs} />
+  </div>
 </section>
 
 <style>
-	.experience-section {
-		padding-top: 6rem;
-		position: relative;
-		z-index: 3;
-	}
+  .experience-section {
+    position: relative;
+    padding: clamp(4rem, 7vw, 6.5rem) 0 clamp(3.5rem, 6vw, 5rem);
+    z-index: 3;
+    overflow: hidden;
+  }
 
-	.experience-title {
-		text-align: center; 
-		color: #fff; 
-		font-family: Montserrat, sans-serif; 
-		font-size: 3.5rem;
-		margin-bottom: 2rem;
-	}
+  .experience-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(130, 206, 255, 0.12), transparent 65%),
+      radial-gradient(circle at 80% 10%, rgba(169, 95, 255, 0.12), transparent 60%),
+      radial-gradient(circle at 50% 80%, rgba(118, 238, 255, 0.1), transparent 70%);
+    opacity: 0.7;
+    filter: blur(2px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .experience-title {
+    position: relative;
+    text-align: center;
+    color: #fff;
+    font-family: Montserrat, sans-serif;
+    font-size: clamp(3rem, 6vw, 3.8rem);
+    margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
+    letter-spacing: 0.2rem;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #77f8ff 0%, #b497ff 45%, #ff9df2 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 18px rgba(142, 216, 255, 0.35);
+    z-index: 1;
+  }
+
+  .experience-title::after {
+    content: "";
+    display: block;
+    margin: clamp(0.6rem, 2vw, 0.8rem) auto 0;
+    width: clamp(5rem, 12vw, 8rem);
+    height: 4px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, rgba(118, 238, 255, 0), rgba(118, 238, 255, 0.8), rgba(118, 238, 255, 0));
+    box-shadow: 0 0 14px rgba(118, 238, 255, 0.6);
+  }
+
+  .timeline-wrapper {
+    position: relative;
+    z-index: 1;
+  }
 </style>
