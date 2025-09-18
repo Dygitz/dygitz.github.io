@@ -308,14 +308,21 @@
   .asteroid::before {
     content: '';
     position: absolute;
-    inset: -22% -12% -18%;
+    inset: -30% -18% -26%;
     background:
-      radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.2), transparent 55%),
-      radial-gradient(ellipse at 60% 65%, rgba(94, 77, 115, 0.88), rgba(27, 24, 36, 0.85));
-    border-radius: 44% 56% 52% 48% / 52% 48% 58% 42%;
-    transform: rotate(calc(var(--rotation, 0deg) * 0.55));
-    box-shadow: 0 25px 35px rgba(11, 9, 25, 0.55);
-    opacity: 0.85;
+      radial-gradient(circle at 28% 26%, rgba(255, 255, 255, 0.18), transparent 58%),
+      radial-gradient(circle at 68% 42%, rgba(255, 255, 255, 0.12), transparent 52%),
+      radial-gradient(circle at 68% 42%, rgba(9, 12, 22, 0.28) 0, rgba(9, 12, 22, 0.08) 40%, transparent 62%),
+      radial-gradient(circle at 38% 68%, rgba(255, 255, 255, 0.1), transparent 52%),
+      radial-gradient(circle at 38% 68%, rgba(6, 8, 16, 0.24) 0, rgba(6, 8, 16, 0.08) 44%, transparent 64%),
+      radial-gradient(circle at 20% 56%, rgba(255, 255, 255, 0.08), transparent 46%),
+      radial-gradient(circle at 20% 56%, rgba(7, 10, 18, 0.2) 0, rgba(7, 10, 18, 0.06) 48%, transparent 66%),
+      radial-gradient(ellipse at 60% 64%, rgba(122, 126, 138, 0.95), rgba(59, 63, 74, 0.94));
+    border-radius: 48% 52% 50% 50% / 58% 42% 60% 40%;
+    transform: rotate(calc(var(--rotation, 0deg) * 0.45)) scale3d(1.08, 1.12, 1);
+    transform-origin: 50% 50%;
+    box-shadow: 0 32px 38px rgba(12, 13, 24, 0.55);
+    opacity: 0.92;
     z-index: -2;
     will-change: transform;
   }
@@ -323,11 +330,13 @@
   .asteroid::after {
     content: '';
     position: absolute;
-    inset: -6% -4%;
-    border-radius: 42% 58% 48% 52% / 52% 48% 58% 42%;
-    background: radial-gradient(circle at top, rgba(255, 255, 255, 0.2), transparent 55%);
-    opacity: 0.4;
-    box-shadow: 0 0 26px rgba(255, 255, 255, 0.28);
+    inset: -12% -10%;
+    border-radius: 48% 52% 50% 50% / 58% 42% 60% 40%;
+    background:
+      radial-gradient(circle at 32% 18%, rgba(255, 255, 255, 0.16), transparent 60%),
+      radial-gradient(circle at 72% 74%, rgba(255, 255, 255, 0.1), transparent 64%);
+    opacity: 0.45;
+    box-shadow: 0 0 34px rgba(165, 185, 216, 0.22);
     z-index: -1;
   }
 
@@ -450,8 +459,8 @@
   }
 
   .asteroid.is-visible::before {
-    opacity: 0.95;
-    transform: rotate(2deg);
+    opacity: 0.97;
+    transform: rotate(2deg) scale3d(1.08, 1.12, 1);
   }
 
   .asteroid.is-floating {
