@@ -73,6 +73,7 @@
 
   let cosmicItems = [];
   let visibleItems = new Set();
+  let floatingItems = new Set();
 
   $: cosmicItems = items.map((item, index) => {
     const variation = variations[index % variations.length];
@@ -93,13 +94,46 @@
   });
 
   onMount(() => {
+    const nodes = Array.from(document.querySelectorAll('.asteroid'));
+
     const observer = new IntersectionObserver(
       (entries) => {
+        let nextVisible = null;
+        let nextFloating = null;
+
         entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.target.dataset.index != null) {
-            visibleItems = new Set(visibleItems).add(entry.target.dataset.index);
+          const indexValue = Number(entry.target.dataset.index);
+          if (Number.isNaN(indexValue)) return;
+
+          if (entry.isIntersecting) {
+            if (!visibleItems.has(indexValue)) {
+              if (!nextVisible) {
+                nextVisible = new Set(visibleItems);
+              }
+              nextVisible.add(indexValue);
+            }
+
+            if (!floatingItems.has(indexValue)) {
+              if (!nextFloating) {
+                nextFloating = new Set(floatingItems);
+              }
+              nextFloating.add(indexValue);
+            }
+          } else if (floatingItems.has(indexValue)) {
+            if (!nextFloating) {
+              nextFloating = new Set(floatingItems);
+            }
+            nextFloating.delete(indexValue);
           }
         });
+
+        if (nextVisible) {
+          visibleItems = nextVisible;
+        }
+
+        if (nextFloating) {
+          floatingItems = nextFloating;
+        }
       },
       {
         threshold: 0.35,
@@ -107,11 +141,12 @@
       }
     );
 
-    document.querySelectorAll('.asteroid').forEach((node) => {
-      observer.observe(node);
-    });
+    nodes.forEach((node) => observer.observe(node));
 
-    return () => observer.disconnect();
+    return () => {
+      nodes.forEach((node) => observer.unobserve(node));
+      observer.disconnect();
+    };
   });
 </script>
 
@@ -120,7 +155,8 @@
   {#each cosmicItems as item (item.index)}
     <article
       class="asteroid"
-      class:is-visible={visibleItems.has(item.index.toString())}
+      class:is-visible={visibleItems.has(item.index)}
+      class:is-floating={floatingItems.has(item.index)}
       data-side={item.side}
       data-index={item.index}
       style={`--delay:${item.index * 140}ms; --drift:${item.drift}; --rotation:${item.rotation}deg; --scale:${item.scale}; --hue:${item.hue}; --float-duration:${item.floatDuration}s; --float-delay:${item.floatDelay}s; --trail-skew:${item.trailSkew}deg;`}
@@ -162,6 +198,7 @@
       radial-gradient(1px 1px at 80% 10%, rgba(255, 255, 255, 0.3) 0, transparent 60%),
       radial-gradient(1.5px 1.5px at 60% 80%, rgba(87, 206, 255, 0.45) 0, transparent 65%);
     animation: drift-stars 28s linear infinite;
+    will-change: transform;
   }
 
   .cosmic-stage::after {
@@ -170,6 +207,7 @@
       radial-gradient(1.5px 1.5px at 70% 30%, rgba(85, 164, 255, 0.35) 0, transparent 60%),
       radial-gradient(2px 2px at 35% 20%, rgba(255, 219, 133, 0.25) 0, transparent 55%);
     animation: drift-stars 38s linear infinite reverse;
+    will-change: transform;
   }
 
   @keyframes drift-stars {
@@ -221,6 +259,7 @@
     height: 140px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
     animation: beam-travel 7s linear infinite;
+    will-change: transform, opacity;
   }
 
   @keyframes beam-travel {
@@ -253,6 +292,7 @@
     transition: transform 0.9s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.6s ease-out, filter 0.7s ease-out;
     transition-delay: var(--delay, 0ms);
     filter: blur(10px);
+    will-change: transform, opacity;
   }
 
   .asteroid[data-side='left'] {
@@ -274,9 +314,10 @@
       radial-gradient(ellipse at 60% 65%, rgba(94, 77, 115, 0.88), rgba(27, 24, 36, 0.85));
     border-radius: 44% 56% 52% 48% / 52% 48% 58% 42%;
     transform: rotate(calc(var(--rotation, 0deg) * 0.55));
-    filter: drop-shadow(0 25px 35px rgba(11, 9, 25, 0.55));
+    box-shadow: 0 25px 35px rgba(11, 9, 25, 0.55);
     opacity: 0.85;
     z-index: -2;
+    will-change: transform;
   }
 
   .asteroid::after {
@@ -286,7 +327,7 @@
     border-radius: 42% 58% 48% 52% / 52% 48% 58% 42%;
     background: radial-gradient(circle at top, rgba(255, 255, 255, 0.2), transparent 55%);
     opacity: 0.4;
-    filter: blur(8px);
+    box-shadow: 0 0 26px rgba(255, 255, 255, 0.28);
     z-index: -1;
   }
 
@@ -320,11 +361,24 @@
     height: 3px;
     transform: translateY(-50%) skewX(var(--trail-skew, -18deg)) scaleX(0.3);
     background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.7) 45%, rgba(255, 255, 255, 0));
-    filter: drop-shadow(0 0 12px rgba(109, 243, 255, 0.35));
+    box-shadow: 0 0 14px rgba(109, 243, 255, 0.35);
     opacity: 0;
     transition: transform 0.7s ease-out, opacity 0.6s ease-out;
     transition-delay: var(--delay, 0ms);
     pointer-events: none;
+    will-change: opacity, transform;
+  }
+
+  .asteroid__trail::after {
+    content: '';
+    position: absolute;
+    inset: -10px -18px;
+    border-radius: 999px;
+    background: radial-gradient(closest-side, rgba(255, 209, 140, 0.6), transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease-out;
+    will-change: opacity;
   }
 
   .asteroid[data-side='left'] .asteroid__trail {
@@ -384,18 +438,28 @@
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1) rotate(0);
     filter: blur(0);
-    animation: float var(--float-duration, 14s) ease-in-out infinite var(--float-delay, 0s);
   }
 
   .asteroid.is-visible .asteroid__trail {
     opacity: 0.7;
     transform: translateY(-50%) skewX(var(--trail-skew, -18deg)) scaleX(1);
-    animation: trail-flicker 4s ease-in-out infinite;
+  }
+
+  .asteroid.is-visible .asteroid__trail::after {
+    opacity: 0.45;
   }
 
   .asteroid.is-visible::before {
     opacity: 0.95;
     transform: rotate(2deg);
+  }
+
+  .asteroid.is-floating {
+    animation: float var(--float-duration, 14s) ease-in-out infinite var(--float-delay, 0s);
+  }
+
+  .asteroid.is-floating .asteroid__trail::after {
+    animation: trail-flicker 4s ease-in-out infinite;
   }
 
   @keyframes float {
@@ -413,14 +477,13 @@
   }
 
   @keyframes trail-flicker {
-    0%, 100% {
-      filter: drop-shadow(0 0 12px rgba(109, 243, 255, 0.35));
-      opacity: 0.7;
+    0%,
+    100% {
+      opacity: 0.45;
     }
 
     50% {
-      filter: drop-shadow(0 0 18px rgba(255, 209, 140, 0.55));
-      opacity: 0.45;
+      opacity: 0.2;
     }
   }
 
@@ -481,6 +544,23 @@
 
     .asteroid__description {
       font-size: 0.95rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cosmic-stage::before,
+    .cosmic-stage::after,
+    .cosmic-lane::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+
+    .asteroid.is-floating {
+      animation: none;
+    }
+
+    .asteroid.is-floating .asteroid__trail::after {
+      animation: none;
     }
   }
 </style>
