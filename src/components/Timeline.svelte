@@ -1,34 +1,36 @@
-<script>
-  import { onMount } from 'svelte';
+<script lang="ts">
+  import { onDestroy, onMount, tick } from 'svelte';
 
-  export let items = [
-    {
-      dateRange: '2021 - Current',
-      title: 'Job 4',
-      company: 'Company 4',
-      description: 'Customer Success Representative.',
-    },
-    {
-      dateRange: '2019 - 2021',
-      title: 'Job 3',
-      company: 'Company 3',
-      description: 'Project Management, System Administrator.',
-    },
-    {
-      dateRange: '2018 - 2019',
-      title: 'Job 2',
-      company: 'Company 2',
-      description: 'Support Specialist.',
-    },
-    {
-      dateRange: '2017 - 2018',
-      title: 'Job 1',
-      company: 'Company 1',
-      description: 'Debugging, Code QA.',
-    }
-  ];
+  import type { Job } from '../data/jobs';
 
-  const variations = [
+  type Side = 'left' | 'right';
+
+  interface Variation {
+    side?: Side;
+    drift?: number;
+    rotation?: number;
+    scale?: number;
+    hue?: number;
+    floatDuration?: number;
+    floatDelay?: number;
+    trailSkew?: number;
+  }
+
+  interface CosmicItem extends Job {
+    index: number;
+    side: Side;
+    drift: number;
+    rotation: number;
+    scale: number;
+    hue: number;
+    floatDuration: number;
+    floatDelay: number;
+    trailSkew: number;
+  }
+
+  export let items: Job[] = [];
+
+  const variations: Variation[] = [
     {
       side: 'left',
       drift: -62,
@@ -68,16 +70,18 @@
       floatDuration: 14,
       floatDelay: 1,
       trailSkew: 18,
-    }
+    },
   ];
 
-  let cosmicItems = [];
-  let visibleItems = new Set();
-  let floatingItems = new Set();
+  let cosmicItems: CosmicItem[] = [];
+  let visibleItems: Set<number> = new Set();
+  let floatingItems: Set<number> = new Set();
+  let selectedItem: CosmicItem | null = null;
+  let closeButton: HTMLButtonElement | null = null;
 
   $: cosmicItems = items.map((item, index) => {
     const variation = variations[index % variations.length];
-    const side = variation.side ?? (index % 2 === 0 ? 'left' : 'right');
+    const side: Side = variation.side ?? (index % 2 === 0 ? 'left' : 'right');
 
     return {
       ...item,
@@ -93,16 +97,41 @@
     };
   });
 
+  const openModal = async (item: CosmicItem) => {
+    selectedItem = item;
+    await tick();
+    closeButton?.focus();
+  };
+
+  const closeModal = () => {
+    selectedItem = null;
+  };
+
+  const handleGlobalKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && selectedItem) {
+      closeModal();
+    }
+  };
+
+  $: if (typeof document !== 'undefined') {
+    if (selectedItem) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+  }
+
   onMount(() => {
-    const nodes = Array.from(document.querySelectorAll('.asteroid'));
+    const nodes = Array.from(document.querySelectorAll<HTMLElement>('.asteroid'));
 
     const observer = new IntersectionObserver(
       (entries) => {
-        let nextVisible = null;
-        let nextFloating = null;
+        let nextVisible: Set<number> | null = null;
+        let nextFloating: Set<number> | null = null;
 
         entries.forEach((entry) => {
-          const indexValue = Number(entry.target.dataset.index);
+          const element = entry.target as HTMLElement;
+          const indexValue = Number(element.dataset.index);
           if (Number.isNaN(indexValue)) return;
 
           if (entry.isIntersecting) {
@@ -146,31 +175,132 @@
     return () => {
       nodes.forEach((node) => observer.unobserve(node));
       observer.disconnect();
+      document.body.classList.remove('modal-open');
     };
   });
+
+  onDestroy(() => {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('modal-open');
+    }
+  });
 </script>
+
+<svelte:window on:keydown={handleGlobalKeydown} />
 
 <div class="cosmic-stage">
   <div class="cosmic-lane" aria-hidden="true"></div>
   {#each cosmicItems as item (item.index)}
-    <article
+    <button
+      type="button"
       class="asteroid"
       class:is-visible={visibleItems.has(item.index)}
       class:is-floating={floatingItems.has(item.index)}
       data-side={item.side}
       data-index={item.index}
+      aria-haspopup="dialog"
+      aria-expanded={selectedItem?.index === item.index}
+      aria-controls={`job-modal-${item.index}`}
+      aria-label={`View experience details: ${item.title} at ${item.company}`}
+      on:click={() => openModal(item)}
       style={`--delay:${item.index * 140}ms; --drift:${item.drift}; --rotation:${item.rotation}deg; --scale:${item.scale}; --hue:${item.hue}; --float-duration:${item.floatDuration}s; --float-delay:${item.floatDelay}s; --trail-skew:${item.trailSkew}deg;`}
     >
       <div class="asteroid__trail" aria-hidden="true"></div>
       <div class="asteroid__core">
         <span class="asteroid__date">{item.dateRange}</span>
-        <h3 class="asteroid__title">{item.title}</h3>
+        <h3 class="asteroid__title" id={`job-${item.index}-card-title`}>{item.title}</h3>
         <p class="asteroid__company">{item.company}</p>
-        <p class="asteroid__description">{item.description}</p>
-      </div>
-    </article>
+        {#if item.employmentType || item.location}
+          <p class="asteroid__meta">
+            {#if item.employmentType}{item.employmentType}{/if}
+            {#if item.employmentType && item.location}
+              &nbsp;·&nbsp;
+            {/if}
+            {#if item.location}{item.location}{/if}
+          </p>
+        {/if}
+        {#if item.summary}
+          <p class="asteroid__summary">{item.summary}</p>
+        {/if}
+        {#if item.skills?.length}
+          <div class="asteroid__skills">
+            {#each item.skills.slice(0, 3) as skill}
+              <span class="asteroid__skill">{skill}</span>
+            {/each}
+            {#if item.skills.length > 3}
+              <span class="asteroid__skill asteroid__skill--more">+{item.skills.length - 3}</span>
+            {/if}
+          </div>
+        {/if}
+        <div class="asteroid__cta">
+          <span>View details</span>
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path
+              d="M6.25 3.25 5 4.5l3.75 3.75H3v1.5h5.75L5 13.5l1.25 1.25L12 9 6.25 3.25Z"
+              fill="currentColor"
+            />
+          </svg>
+        </div>
+        </div>
+    </button>
   {/each}
 </div>
+
+{#if selectedItem}
+  <div class="modal-backdrop" role="presentation" on:click={closeModal}>
+    <article
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={`job-${selectedItem.index}-modal-title`}
+      id={`job-modal-${selectedItem.index}`}
+      on:click|stopPropagation
+    >
+      <button
+        class="modal__close"
+        type="button"
+        on:click={closeModal}
+        aria-label="Close experience details"
+        bind:this={closeButton}
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+      <span class="modal__date">{selectedItem.dateRange}</span>
+      <h3 class="modal__title" id={`job-${selectedItem.index}-modal-title`}>
+        {selectedItem.title}
+      </h3>
+      <p class="modal__company">{selectedItem.company}</p>
+      {#if selectedItem.employmentType || selectedItem.location}
+        <p class="modal__meta">
+          {#if selectedItem.employmentType}{selectedItem.employmentType}{/if}
+          {#if selectedItem.employmentType && selectedItem.location}
+            &nbsp;·&nbsp;
+          {/if}
+          {#if selectedItem.location}{selectedItem.location}{/if}
+        </p>
+      {/if}
+      {#if selectedItem.summary}
+        <p class="modal__summary">{selectedItem.summary}</p>
+      {/if}
+      {#if selectedItem.details?.length}
+        <ul class="modal__details">
+          {#each selectedItem.details as detail}
+            <li>{detail}</li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="modal__placeholder">Additional details coming soon.</p>
+      {/if}
+      {#if selectedItem.skills?.length}
+        <div class="modal__skills">
+          {#each selectedItem.skills as skill}
+            <span class="modal__skill">{skill}</span>
+          {/each}
+        </div>
+      {/if}
+    </article>
+  </div>
+{/if}
 
 <style>
   .cosmic-stage {
@@ -288,11 +418,30 @@
     margin: clamp(1.4rem, 4.5vw, 2.8rem) 0;
     z-index: 2;
     opacity: 0;
-    transform: translate3d(calc(var(--drift, -55) * 1%), 140px, 0) scale(var(--scale, 0.9)) rotate(var(--rotation, 0deg));
+    transform: translate3d(calc(var(--drift, -55) * 1%), 140px, 0) scale(var(--scale, 0.9))
+      rotate(var(--rotation, 0deg));
     transition: transform 0.9s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.6s ease-out, filter 0.7s ease-out;
     transition-delay: var(--delay, 0ms);
     filter: blur(10px);
     will-change: transform, opacity;
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+  }
+
+  .asteroid:focus {
+    outline: none;
+  }
+
+  .asteroid:focus-visible > .asteroid__core {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 0 0 3px rgba(112, 206, 255, 0.55),
+      0 18px 40px rgba(10, 15, 37, 0.55);
   }
 
   .asteroid[data-side='left'] {
@@ -359,6 +508,7 @@
       inset 0 0 0 1px rgba(255, 255, 255, 0.06),
       0 18px 40px rgba(10, 15, 37, 0.55);
     backdrop-filter: blur(12px);
+    transition: box-shadow 0.35s ease;
   }
 
   .asteroid__core::before {
@@ -438,18 +588,73 @@
   }
 
   .asteroid__company {
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.5rem;
     font-weight: 600;
     font-style: italic;
     letter-spacing: 0.02em;
     color: rgba(188, 230, 255, 0.85);
   }
 
-  .asteroid__description {
-    margin: 0;
-    color: rgba(221, 235, 255, 0.85);
-    line-height: 1.55;
-    font-size: 0.98rem;
+  .asteroid__meta {
+    margin: 0 0 0.75rem;
+    color: rgba(188, 230, 255, 0.65);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+  }
+
+  .asteroid__summary {
+    margin: 0 0 0.9rem;
+    color: rgba(221, 235, 255, 0.88);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  .asteroid__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 1.1rem;
+  }
+
+  .asteroid__skill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(102, 173, 255, 0.14);
+    color: rgba(202, 230, 255, 0.88);
+    border: 1px solid rgba(130, 192, 255, 0.28);
+  }
+
+  .asteroid__skill--more {
+    background: rgba(130, 192, 255, 0.16);
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .asteroid__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: rgba(146, 206, 255, 0.8);
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+
+  .asteroid__cta svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .asteroid:hover .asteroid__cta,
+  .asteroid:focus-visible .asteroid__cta,
+  .asteroid.is-visible .asteroid__cta {
+    color: rgba(195, 233, 255, 0.95);
   }
 
   .asteroid.is-visible {
@@ -503,6 +708,139 @@
     50% {
       opacity: 0.2;
     }
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    background: rgba(8, 12, 24, 0.72);
+    backdrop-filter: blur(12px);
+    z-index: 999;
+  }
+
+  .modal {
+    position: relative;
+    width: min(600px, 100%);
+    max-height: min(80vh, 720px);
+    overflow-y: auto;
+    padding: clamp(1.8rem, 3vw, 2.4rem);
+    border-radius: 24px;
+    background: linear-gradient(150deg, rgba(22, 33, 56, 0.96), rgba(16, 22, 41, 0.88));
+    border: 1px solid rgba(141, 197, 255, 0.22);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+      0 32px 60px rgba(8, 12, 30, 0.65);
+  }
+
+  .modal__close {
+    position: sticky;
+    top: 0;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    border: none;
+    background: rgba(24, 36, 62, 0.85);
+    color: rgba(222, 235, 255, 0.85);
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  .modal__close:hover,
+  .modal__close:focus-visible {
+    background: rgba(112, 162, 255, 0.45);
+    color: #fff;
+    outline: none;
+  }
+
+  .modal__date {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(210, 236, 255, 0.85);
+    margin-bottom: 1.1rem;
+  }
+
+  .modal__date::before {
+    content: '';
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(124, 223, 255, 0.95), rgba(255, 255, 255, 0.7));
+    box-shadow: 0 0 18px rgba(124, 223, 255, 0.6);
+  }
+
+  .modal__title {
+    margin: 0 0 0.35rem;
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+    color: rgba(205, 233, 255, 0.95);
+  }
+
+  .modal__company {
+    margin: 0 0 0.6rem;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: 0.03em;
+    color: rgba(188, 230, 255, 0.85);
+  }
+
+  .modal__meta {
+    margin: 0 0 1.25rem;
+    color: rgba(188, 230, 255, 0.7);
+    letter-spacing: 0.05em;
+  }
+
+  .modal__summary {
+    margin: 0 0 1.25rem;
+    color: rgba(221, 235, 255, 0.88);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .modal__details {
+    margin: 0 0 1.6rem 1.1rem;
+    padding: 0;
+    list-style: disc;
+    color: rgba(226, 236, 255, 0.9);
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .modal__placeholder {
+    margin: 0 0 1.6rem;
+    color: rgba(196, 214, 238, 0.7);
+    font-style: italic;
+  }
+
+  .modal__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .modal__skill {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(120, 180, 255, 0.18);
+    color: rgba(230, 240, 255, 0.95);
+    border: 1px solid rgba(150, 205, 255, 0.3);
+  }
+
+  :global(body.modal-open) {
+    overflow: hidden;
   }
 
   @media (max-width: 900px) {
@@ -560,15 +898,25 @@
       font-size: clamp(1.1rem, 4vw, 1.35rem);
     }
 
-    .asteroid__description {
+    .asteroid__summary {
       font-size: 0.95rem;
+    }
+
+    .modal {
+      padding: 1.6rem 1.2rem 1.8rem;
+    }
+
+    .modal-backdrop {
+      padding: 1.5rem;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .cosmic-stage::before,
     .cosmic-stage::after,
-    .cosmic-lane::after {
+    .cosmic-lane::after,
+    .asteroid.is-floating,
+    .asteroid.is-floating .asteroid__trail::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
     }
