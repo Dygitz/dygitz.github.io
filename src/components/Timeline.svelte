@@ -284,8 +284,8 @@
 
   .asteroid {
     position: relative;
-    width: min(100%, 380px);
-    margin: clamp(1.2rem, 4vw, 2.4rem) 0;
+    width: min(100%, 340px);
+    margin: clamp(1.4rem, 4.5vw, 2.8rem) 0;
     z-index: 2;
     opacity: 0;
     transform: translate3d(calc(var(--drift, -55) * 1%), 140px, 0) scale(var(--scale, 0.9)) rotate(var(--rotation, 0deg));
@@ -297,32 +297,41 @@
 
   .asteroid[data-side='left'] {
     margin-right: auto;
-    padding-right: clamp(1rem, 5vw, 4rem);
+    padding-right: clamp(0.75rem, 4vw, 2.5rem);
   }
 
   .asteroid[data-side='right'] {
     margin-left: auto;
-    padding-left: clamp(1rem, 5vw, 4rem);
+    padding-left: clamp(0.75rem, 4vw, 2.5rem);
   }
 
   .asteroid::before {
     content: '';
     position: absolute;
-    inset: -30% -18% -26%;
+    inset: -18% -12% -18%;
     background:
-      radial-gradient(circle at 28% 26%, rgba(255, 255, 255, 0.18), transparent 58%),
-      radial-gradient(circle at 68% 42%, rgba(255, 255, 255, 0.12), transparent 52%),
-      radial-gradient(circle at 68% 42%, rgba(9, 12, 22, 0.28) 0, rgba(9, 12, 22, 0.08) 40%, transparent 62%),
-      radial-gradient(circle at 38% 68%, rgba(255, 255, 255, 0.1), transparent 52%),
-      radial-gradient(circle at 38% 68%, rgba(6, 8, 16, 0.24) 0, rgba(6, 8, 16, 0.08) 44%, transparent 64%),
-      radial-gradient(circle at 20% 56%, rgba(255, 255, 255, 0.08), transparent 46%),
-      radial-gradient(circle at 20% 56%, rgba(7, 10, 18, 0.2) 0, rgba(7, 10, 18, 0.06) 48%, transparent 66%),
-      radial-gradient(ellipse at 60% 64%, rgba(122, 126, 138, 0.95), rgba(59, 63, 74, 0.94));
+      radial-gradient(circle at 28% 32%, rgba(29, 33, 46, 0.7) 0, rgba(29, 33, 46, 0.38) 46%, rgba(29, 33, 46, 0) 72%),
+      radial-gradient(circle at 30% 36%, rgba(196, 210, 230, 0.22) 0, rgba(196, 210, 230, 0.08) 44%, rgba(196, 210, 230, 0) 70%),
+      radial-gradient(circle at 58% 26%, rgba(23, 27, 37, 0.5) 0, rgba(23, 27, 37, 0.26) 40%, rgba(23, 27, 37, 0) 70%),
+      radial-gradient(circle at 60% 24%, rgba(198, 208, 226, 0.18) 0, rgba(198, 208, 226, 0.06) 44%, rgba(198, 208, 226, 0) 72%),
+      radial-gradient(circle at 68% 40%, rgba(22, 26, 36, 0.62) 0, rgba(22, 26, 36, 0.35) 40%, rgba(22, 26, 36, 0) 68%),
+      radial-gradient(circle at 70% 44%, rgba(186, 200, 220, 0.2) 0, rgba(186, 200, 220, 0.07) 46%, rgba(186, 200, 220, 0) 72%),
+      radial-gradient(circle at 18% 48%, rgba(21, 25, 34, 0.38) 0, rgba(21, 25, 34, 0.2) 42%, rgba(21, 25, 34, 0) 70%),
+      radial-gradient(circle at 20% 50%, rgba(200, 212, 230, 0.16) 0, rgba(200, 212, 230, 0.06) 46%, rgba(200, 212, 230, 0) 72%),
+      radial-gradient(circle at 48% 64%, rgba(18, 23, 33, 0.48) 0, rgba(18, 23, 33, 0.24) 42%, rgba(18, 23, 33, 0) 70%),
+      radial-gradient(circle at 50% 66%, rgba(188, 204, 224, 0.16) 0, rgba(188, 204, 224, 0.05) 50%, rgba(188, 204, 224, 0) 74%),
+      radial-gradient(circle at 40% 76%, rgba(24, 28, 39, 0.52) 0, rgba(24, 28, 39, 0.26) 40%, rgba(24, 28, 39, 0) 70%),
+      radial-gradient(circle at 42% 78%, rgba(200, 210, 226, 0.16) 0, rgba(200, 210, 226, 0.06) 46%, rgba(200, 210, 226, 0) 74%),
+      radial-gradient(circle at 22% 62%, rgba(20, 25, 36, 0.36) 0, rgba(20, 25, 36, 0.18) 45%, rgba(20, 25, 36, 0) 72%),
+      radial-gradient(circle at 76% 68%, rgba(17, 22, 33, 0.32) 0, rgba(17, 22, 33, 0.14) 50%, rgba(17, 22, 33, 0) 76%),
+      radial-gradient(circle at 36% 20%, rgba(255, 255, 255, 0.12), transparent 60%),
+      radial-gradient(circle at 62% 78%, rgba(255, 255, 255, 0.1), transparent 58%),
+      radial-gradient(ellipse at 60% 64%, rgba(122, 126, 138, 0.96), rgba(59, 63, 74, 0.94));
     border-radius: 48% 52% 50% 50% / 58% 42% 60% 40%;
-    transform: rotate(calc(var(--rotation, 0deg) * 0.45)) scale3d(1.08, 1.12, 1);
+    transform: rotate(calc(var(--rotation, 0deg) * 0.45)) scale3d(1.04, 1.07, 1);
     transform-origin: 50% 50%;
-    box-shadow: 0 32px 38px rgba(12, 13, 24, 0.55);
-    opacity: 0.92;
+    box-shadow: 0 24px 32px rgba(12, 13, 24, 0.48);
+    opacity: 0.95;
     z-index: -2;
     will-change: transform;
   }
@@ -330,20 +339,20 @@
   .asteroid::after {
     content: '';
     position: absolute;
-    inset: -12% -10%;
+    inset: -10% -8%;
     border-radius: 48% 52% 50% 50% / 58% 42% 60% 40%;
     background:
-      radial-gradient(circle at 32% 18%, rgba(255, 255, 255, 0.16), transparent 60%),
-      radial-gradient(circle at 72% 74%, rgba(255, 255, 255, 0.1), transparent 64%);
-    opacity: 0.45;
-    box-shadow: 0 0 34px rgba(165, 185, 216, 0.22);
+      radial-gradient(circle at 32% 18%, rgba(255, 255, 255, 0.16), transparent 58%),
+      radial-gradient(circle at 72% 74%, rgba(255, 255, 255, 0.12), transparent 64%);
+    opacity: 0.42;
+    box-shadow: 0 0 30px rgba(165, 185, 216, 0.22);
     z-index: -1;
   }
 
   .asteroid__core {
     position: relative;
-    padding: clamp(1.35rem, 3vw, 1.8rem);
-    border-radius: 22px;
+    padding: clamp(1.1rem, 2.6vw, 1.6rem);
+    border-radius: 20px;
     background: linear-gradient(145deg, rgba(22, 33, 56, 0.95), rgba(16, 22, 41, 0.75));
     border: 1px solid rgba(141, 197, 255, 0.15);
     box-shadow:
@@ -460,7 +469,7 @@
 
   .asteroid.is-visible::before {
     opacity: 0.97;
-    transform: rotate(2deg) scale3d(1.08, 1.12, 1);
+    transform: rotate(2deg) scale3d(1.06, 1.08, 1);
   }
 
   .asteroid.is-floating {
@@ -544,7 +553,7 @@
     }
 
     .asteroid__core {
-      padding: 1.2rem 1.1rem 1.5rem;
+      padding: 1.1rem 1rem 1.4rem;
     }
 
     .asteroid__title {
