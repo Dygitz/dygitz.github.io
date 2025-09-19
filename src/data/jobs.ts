@@ -1,62 +1,106 @@
 export interface Job {
-	dateRange: string;
-	title: string;
-	company: string;
-	description: string;
+  dateRange: string;
+  title: string;
+  company: string;
+  description: string;
+  location?: string;
+  tagline?: string;
+  skills?: string[];
 }
 
 export const jobs: Job[] = [
-	{
-		dateRange: "Sep 2025 - Dec 2025",
-		title: "Software Engineering Intern, Infrastructure",
-		company: "Super.com",
-		description: "",
-	},
-	{
-		dateRange: "Jan 2025 - May 2025",
-		title: "Fullstack Software Engineering Intern",
-		company: "Hamming AI (YC S24)",
-		description: "Built dynamically generated IVR state machines for AI voice agent testing, directly leading to new customers. Investigated and fixed critical Redis concurrency issues, reducing call error rate by 85%. Automated frontend and backend tests using GitHub Actions and scheduled jobs to catch regressions in CI/CD. Enabled third-party voice agents to integrate with the Hamming platform, unlocking new customers.",
-	},
-	{
-		dateRange: "Oct 2024 - Current",
-		title: "Member",
-		company: "Cohere For AI",
-		description: "",
-	},
-	{
-		dateRange: "Feb 2024 - Oct 2024",
-		title: "Autonomous Software Developer",
-		company: "WATonomous",
-		description:
-			"Trained and implemented a graph-based trajectory prediction model, leveraging the nuScenes dataset, to enhance our vehicle's autonomous navigation",
-	},
-	{
-		dateRange: "May 2024 - Aug 2024",
-		title: "Software Engineering Intern",
-		company: "Carnegie Mellon University CyLab Biometrics Center",
-		description:
-			"Built a fully autonomous robot from ground up in a team of two to deliver groceries across the CMU campus. Engineered a ROS2 software stack integrating sensor fusion (EKF), AMCL/SLAM for localization, Hybrid A* for motion planning, and MPPI for control, achieving real-time, centimeter-level accurate navigation. Integrated Jetson Orin Nano, Lidar, RTK GPS, Depth Camera, IMU, and Arduino for precise navigation. Built AI checkout system using OpenCV to prevent retail theft by classifying 250K+ Walmart products",
-	},
-	{
-		dateRange: "May 2023 - Jun 2023",
-		title: "Data Science Intern",
-		company: "MBR Technology",
-		description:
-			"Trained neural networks for image classification on public datasets like FashionMNIST and ImageNet. Trained CNN with transfer learning, achieving 96% accuracy using 7.7 million parameters",
-	},
-	{
-		dateRange: "Jun 2022 - Aug 2022",
-		title: "Software Engineer Intern",
-		company: "Palturai",
-		description:
-			"Developed an interactive knowledge graph visualization tool and a custom language for tailored filtering, aesthetic control, and enhanced data display (RDF-Viewer). Scraped SEC filings, extracting relational data to serve as test cases for RDF-Viewer",
-	},
-	{
-		dateRange: "Jun 2021 - Aug 2021",
-		title: "Software Engineer Intern",
-		company: "Palturai",
-		description:
-			"Designed Java SDK to abstract interaction with fraud detection graph database, handling 210M+ relationships",
-	},
+  {
+    dateRange: "Sep 2025 - Present · 1 mo",
+    title: "Software Engineer Intern",
+    company: "Super.com",
+    location: "San Francisco, California, United States · Remote",
+    tagline: "Infrastructure Team 🔧",
+    skills: ["Kubernetes", "Amazon Web Services (AWS)", "Datadog"],
+    description: "",
+  },
+  {
+    dateRange: "Dec 2024 - Apr 2025 · 5 mos",
+    title: "Fullstack Software Engineering Intern",
+    company: "Hamming AI (YC S24)",
+    location: "San Francisco, California, United States",
+    tagline: "Fullstack 🚀 YC S24",
+    skills: ["Next.js", "PostgreSQL", "Temporal", "LiveKit", "tRPC", "Datadog"],
+    description:
+      "Built dynamically generated IVR state machines for AI voice agent testing, directly leading to new customers. Investigated and fixed critical Redis concurrency issues, reducing call error rate by 85%. Automated frontend and backend tests using GitHub Actions and scheduled jobs to catch regressions in CI/CD. Enabled third-party voice agents to integrate with the Hamming platform, unlocking new customers.",
+  },
+  {
+    dateRange: "Oct 2024 - Present · 1 yr",
+    title: "Member",
+    company: "Cohere For AI",
+    location: "Remote",
+    tagline: "Cohere Labs",
+    description: "",
+  },
+  {
+    dateRange: "Feb 2024 - Oct 2024 · 9 mos",
+    title: "Autonomous Software Developer",
+    company: "WATonomous",
+    location: "Waterloo, Ontario, Canada · Hybrid",
+    tagline: "Machine Learning 🚙",
+    skills: ["ROS2", "Docker", "PyTorch", "C++", "Python (Programming Language)"],
+    description:
+      "Trained and deployed a graph-based trajectory prediction model leveraging the nuScenes dataset to improve the team's autonomous driving stack.",
+  },
+  {
+    dateRange: "May 2024 - Aug 2024 · 4 mos",
+    title: "Software Engineering Intern",
+    company: "Carnegie Mellon University CyLab Biometrics Center",
+    location: "Pittsburgh, Pennsylvania, United States · On-site",
+    tagline: "Robotics + Computer Vision 🤖",
+    skills: [
+      "ROS2",
+      "OpenCV",
+      "Docker",
+      "JavaScript",
+      "React.js",
+      "Flask",
+      "Express.js",
+      "C++",
+      "Python (Programming Language)",
+    ],
+    description:
+      "Built a fully autonomous robot from the ground up in a team of two to deliver groceries across campus. Engineered a ROS2 stack integrating sensor fusion (EKF), AMCL/SLAM localization, Hybrid A* motion planning, and MPPI control for centimeter-level navigation. Integrated Jetson Orin Nano, LiDAR, RTK GPS, depth cameras, IMU, and Arduino subsystems. Created an OpenCV-powered AI checkout system to classify over 250K Walmart products and prevent retail theft.",
+  },
+  {
+    dateRange: "May 2023 - Jun 2023 · 2 mos",
+    title: "Data Science Intern",
+    company: "MBR Technology",
+    location: "Remote",
+    tagline: "Machine Learning 🧠",
+    skills: ["Pandas", "Jupyter Notebook", "NumPy", "PyTorch", "Python (Programming Language)", "Git"],
+    description:
+      "Trained convolutional neural networks for image classification on FashionMNIST and ImageNet, achieving 96% accuracy with a 7.7M-parameter transfer learning pipeline.",
+  },
+  {
+    dateRange: "Jun 2022 - Aug 2022 · 3 mos",
+    title: "Software Engineer Intern",
+    company: "Palturai",
+    location: "Paoli, Pennsylvania, United States · Hybrid",
+    tagline: "Fullstack 🔗",
+    skills: [
+      "Docker",
+      "JavaFX",
+      "Web Scraping",
+      "Knowledge Graphs",
+      "Apache Jena",
+      "Java (Programming Language)",
+    ],
+    description:
+      "Developed an interactive knowledge graph visualization tool and a custom query language for filtering, styling, and enhancing RDF data displays. Scraped SEC filings to generate realistic data for demonstrations of the platform.",
+  },
+  {
+    dateRange: "Jun 2021 - Aug 2021 · 3 mos",
+    title: "Software Engineer Intern",
+    company: "Palturai",
+    location: "Paoli, Pennsylvania",
+    tagline: "Backend ⚙️",
+    skills: ["Java (Programming Language)", "REST APIs"],
+    description:
+      "Designed a Java SDK to abstract interactions with a fraud-detection knowledge graph containing over 210 million relationships.",
+  },
 ];
