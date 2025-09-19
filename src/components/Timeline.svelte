@@ -1,31 +1,47 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
 
   export let items = [
     {
       dateRange: '2021 - Current',
+      tenure: '2021 to Current',
       title: 'Job 4',
       company: 'Company 4',
-      description: 'Customer Success Representative.',
+      summary: 'Customer Success Representative.',
+      employmentType: 'Full-time',
+      location: 'Remote',
+      skills: ['Customer Success', 'CRM', 'Support'],
+      highlights: [
+        'Built out new onboarding flows that improved activation by 12%.',
+        'Owned enterprise escalations for six strategic accounts.',
+      ],
     },
     {
       dateRange: '2019 - 2021',
+      tenure: '2019 to 2021',
       title: 'Job 3',
       company: 'Company 3',
-      description: 'Project Management, System Administrator.',
+      summary: 'Project Management · Systems',
+      employmentType: 'Contract',
+      skills: ['Project Management', 'Systems'],
+      highlights: ['Shipped multiple cross-functional launches.'],
     },
     {
       dateRange: '2018 - 2019',
+      tenure: '2018 to 2019',
       title: 'Job 2',
       company: 'Company 2',
-      description: 'Support Specialist.',
+      summary: 'Support Specialist.',
+      employmentType: 'Full-time',
     },
     {
       dateRange: '2017 - 2018',
+      tenure: '2017 to 2018',
       title: 'Job 1',
       company: 'Company 1',
-      description: 'Debugging, Code QA.',
-    }
+      summary: 'Debugging, Code QA.',
+      employmentType: 'Internship',
+    },
   ];
 
   const variations = [
@@ -74,6 +90,14 @@
   let cosmicItems = [];
   let visibleItems = new Set();
   let floatingItems = new Set();
+  let activeIndex = null;
+  let activeJob = null;
+  let modalBodyId;
+  let closeButton;
+  let lastFocusedElement;
+  let body;
+  let storedOverflow;
+  let isScrollLocked = false;
 
   $: cosmicItems = items.map((item, index) => {
     const variation = variations[index % variations.length];
@@ -93,7 +117,58 @@
     };
   });
 
+  function lockScroll() {
+    if (!body || isScrollLocked) return;
+    storedOverflow = body.style.overflow;
+    body.style.overflow = 'hidden';
+    isScrollLocked = true;
+  }
+
+  function unlockScroll() {
+    if (!body || !isScrollLocked) return;
+    body.style.overflow = storedOverflow ?? '';
+    storedOverflow = undefined;
+    isScrollLocked = false;
+  }
+
+  function handleGlobalKeydown(event) {
+    if (event.key === 'Escape' && activeIndex !== null) {
+      event.preventDefault();
+      closeModal();
+    }
+  }
+
+  async function openModal(index, triggerEvent) {
+    if (triggerEvent?.currentTarget) {
+      lastFocusedElement = triggerEvent.currentTarget;
+    } else if (typeof document !== 'undefined') {
+      lastFocusedElement = document.activeElement;
+    }
+
+    activeIndex = index;
+    await tick();
+
+    if (closeButton) {
+      closeButton.focus();
+    }
+  }
+
+  async function closeModal() {
+    if (activeIndex === null) return;
+    activeIndex = null;
+    await tick();
+
+    if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+      lastFocusedElement.focus();
+    }
+
+    lastFocusedElement = null;
+  }
+
   onMount(() => {
+    body = document.body;
+    document.addEventListener('keydown', handleGlobalKeydown);
+
     const nodes = Array.from(document.querySelectorAll('.asteroid'));
 
     const observer = new IntersectionObserver(
@@ -146,8 +221,32 @@
     return () => {
       nodes.forEach((node) => observer.unobserve(node));
       observer.disconnect();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('keydown', handleGlobalKeydown);
+      }
+      unlockScroll();
     };
   });
+
+  onDestroy(() => {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('keydown', handleGlobalKeydown);
+    }
+    unlockScroll();
+  });
+
+  $: activeJob =
+    activeIndex !== null && cosmicItems[activeIndex] ? cosmicItems[activeIndex] : null;
+
+  $: modalBodyId = activeJob ? `job-modal-body-${activeJob.index}` : undefined;
+
+  $: {
+    if (activeJob) {
+      lockScroll();
+    } else {
+      unlockScroll();
+    }
+  }
 </script>
 
 <div class="cosmic-stage">
@@ -162,15 +261,133 @@
       style={`--delay:${item.index * 140}ms; --drift:${item.drift}; --rotation:${item.rotation}deg; --scale:${item.scale}; --hue:${item.hue}; --float-duration:${item.floatDuration}s; --float-delay:${item.floatDelay}s; --trail-skew:${item.trailSkew}deg;`}
     >
       <div class="asteroid__trail" aria-hidden="true"></div>
-      <div class="asteroid__core">
-        <span class="asteroid__date">{item.dateRange}</span>
+      <button
+        type="button"
+        class="asteroid__interactive"
+        aria-haspopup="dialog"
+        aria-label={`View highlights for ${item.title} at ${item.company}`}
+        on:click={(event) => openModal(item.index, event)}
+      >
+        <div class="asteroid__core">
+          <div class="asteroid__date-row">
+            <span class="asteroid__date">{item.dateRange}</span>
+            {#if item.tenure}
+              <span class="asteroid__tenure">{item.tenure}</span>
+            {/if}
+        </div>
         <h3 class="asteroid__title">{item.title}</h3>
         <p class="asteroid__company">{item.company}</p>
-        <p class="asteroid__description">{item.description}</p>
-      </div>
+        {#if item.summary}
+          <p class="asteroid__summary">{item.summary}</p>
+        {/if}
+        {#if item.employmentType || item.location}
+          <div class="asteroid__meta">
+            {#if item.employmentType}
+              <span class="asteroid__badge">{item.employmentType}</span>
+            {/if}
+            {#if item.location}
+              <span class="asteroid__location">{item.location}</span>
+            {/if}
+          </div>
+        {/if}
+        {#if item.skills?.length}
+          <ul class="asteroid__skills">
+            {#each item.skills.slice(0, 4) as skill}
+              <li>{skill}</li>
+            {/each}
+            {#if item.skills.length > 4}
+              <li class="asteroid__skills-more">+{item.skills.length - 4}</li>
+            {/if}
+          </ul>
+        {/if}
+        <div class="asteroid__action">
+          <span>View highlights</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <path d="M4 10h12m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        </div>
+      </button>
     </article>
   {/each}
 </div>
+
+{#if activeJob}
+  <div class="modal-backdrop" role="presentation">
+    <button
+      class="modal__underlay"
+      type="button"
+      aria-hidden="true"
+      tabindex="-1"
+      on:click={closeModal}
+    ></button>
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={`job-modal-title-${activeJob.index}`}
+      aria-describedby={modalBodyId}
+    >
+      <header class="modal__header">
+        <div class="modal__heading">
+          <div class="modal__dates">
+            <span class="modal__date">{activeJob.dateRange}</span>
+            {#if activeJob.tenure}
+              <span class="modal__tenure">{activeJob.tenure}</span>
+            {/if}
+          </div>
+          <h3 class="modal__title" id={`job-modal-title-${activeJob.index}`}>{activeJob.title}</h3>
+          <p class="modal__company">{activeJob.company}</p>
+          {#if activeJob.summary}
+            <p class="modal__summary">{activeJob.summary}</p>
+          {/if}
+        </div>
+        <button
+          class="modal__close"
+          type="button"
+          on:click={closeModal}
+          aria-label="Close experience details"
+          bind:this={closeButton}
+        >
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <path d="M5 5l10 10M15 5 5 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </button>
+      </header>
+      {#if activeJob.employmentType || activeJob.location}
+        <div class="modal__meta">
+          {#if activeJob.employmentType}
+            <span class="modal__pill">{activeJob.employmentType}</span>
+          {/if}
+          {#if activeJob.location}
+            <span class="modal__pill modal__pill--muted">{activeJob.location}</span>
+          {/if}
+        </div>
+      {/if}
+      {#if activeJob.skills?.length}
+        <ul class="modal__skills">
+          {#each activeJob.skills as skill}
+            <li>{skill}</li>
+          {/each}
+        </ul>
+      {/if}
+      <div class="modal__body" id={modalBodyId}>
+        {#if activeJob.highlights?.length}
+          <h4>Highlights</h4>
+          <ul>
+            {#each activeJob.highlights as highlight}
+              <li>{highlight}</li>
+            {/each}
+          </ul>
+        {:else if activeJob.description}
+          <p>{activeJob.description}</p>
+        {:else}
+          <p class="modal__placeholder">More details coming soon.</p>
+        {/if}
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .cosmic-stage {
@@ -359,6 +576,8 @@
       inset 0 0 0 1px rgba(255, 255, 255, 0.06),
       0 18px 40px rgba(10, 15, 37, 0.55);
     backdrop-filter: blur(12px);
+    transition: transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease;
+    transform: translateY(0);
   }
 
   .asteroid__core::before {
@@ -370,6 +589,32 @@
     opacity: 0.6;
     mix-blend-mode: screen;
     pointer-events: none;
+  }
+
+  .asteroid__interactive {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .asteroid__interactive:focus-visible {
+    outline: none;
+  }
+
+  .asteroid:hover .asteroid__core,
+  .asteroid__interactive:hover .asteroid__core,
+  .asteroid__interactive:focus-visible .asteroid__core {
+    transform: translateY(-6px);
+    border-color: rgba(141, 197, 255, 0.35);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 24px 48px rgba(10, 15, 37, 0.65);
   }
 
   .asteroid__trail {
@@ -409,6 +654,14 @@
     transform-origin: 0% 50%;
   }
 
+  .asteroid__date-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
   .asteroid__date {
     display: inline-flex;
     align-items: center;
@@ -417,7 +670,6 @@
     text-transform: uppercase;
     letter-spacing: 0.18em;
     color: rgba(210, 236, 255, 0.8);
-    margin-bottom: 0.9rem;
   }
 
   .asteroid__date::before {
@@ -429,27 +681,110 @@
     box-shadow: 0 0 16px hsla(var(--hue, 210), 90%, 72%, 0.8);
   }
 
+  .asteroid__tenure {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(210, 236, 255, 0.55);
+  }
+
   .asteroid__title {
     font-size: clamp(1.15rem, 2.4vw, 1.5rem);
     font-weight: 700;
-    margin: 0 0 0.35rem;
+    margin: 0 0 0.3rem;
     color: hsl(var(--hue, 210), 88%, 70%);
     text-shadow: 0 0 20px hsla(var(--hue, 210), 92%, 70%, 0.6);
   }
 
   .asteroid__company {
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.6rem;
     font-weight: 600;
     font-style: italic;
     letter-spacing: 0.02em;
     color: rgba(188, 230, 255, 0.85);
   }
 
-  .asteroid__description {
-    margin: 0;
-    color: rgba(221, 235, 255, 0.85);
-    line-height: 1.55;
-    font-size: 0.98rem;
+  .asteroid__summary {
+    margin: 0 0 0.75rem;
+    color: rgba(221, 235, 255, 0.88);
+    line-height: 1.45;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .asteroid__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 0.85rem;
+  }
+
+  .asteroid__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.32rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(141, 197, 255, 0.24);
+    background: rgba(141, 197, 255, 0.16);
+    font-size: 0.73rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(210, 236, 255, 0.85);
+    font-weight: 600;
+  }
+
+  .asteroid__location {
+    font-size: 0.85rem;
+    color: rgba(210, 236, 255, 0.75);
+  }
+
+  .asteroid__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .asteroid__skills li {
+    padding: 0.32rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(80, 160, 255, 0.12);
+    border: 1px solid rgba(120, 200, 255, 0.2);
+    font-size: 0.78rem;
+    color: rgba(200, 230, 255, 0.9);
+    line-height: 1.2;
+  }
+
+  .asteroid__skills-more {
+    border-style: dashed;
+    border-color: rgba(200, 230, 255, 0.35);
+    background: transparent;
+    color: rgba(200, 230, 255, 0.75);
+  }
+
+  .asteroid__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.86rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(var(--hue, 210), 88%, 70%);
+  }
+
+  .asteroid__action svg {
+    width: 1.05rem;
+    height: 1.05rem;
+    transition: transform 0.3s ease;
+  }
+
+  .asteroid:hover .asteroid__action svg,
+  .asteroid__interactive:hover .asteroid__action svg,
+  .asteroid__interactive:focus-visible .asteroid__action svg {
+    transform: translateX(4px);
   }
 
   .asteroid.is-visible {
@@ -480,6 +815,251 @@
     animation: trail-flicker 4s ease-in-out infinite;
   }
 
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 9, 20, 0.82);
+    backdrop-filter: blur(18px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    z-index: 60;
+    animation: modal-fade 0.3s ease;
+  }
+
+  .modal__underlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .modal__underlay:focus {
+    outline: none;
+  }
+
+  .modal {
+    width: min(640px, calc(100% - 2rem));
+    max-height: min(90vh, 720px);
+    overflow-y: auto;
+    background: linear-gradient(160deg, rgba(20, 29, 52, 0.95), rgba(12, 18, 36, 0.9));
+    border-radius: 24px;
+    border: 1px solid rgba(141, 197, 255, 0.25);
+    box-shadow: 0 30px 80px rgba(6, 10, 26, 0.6);
+    padding: clamp(1.6rem, 3vw, 2.2rem);
+    color: #eaf4ff;
+    position: relative;
+    animation: modal-pop 0.28s ease;
+    -webkit-overflow-scrolling: touch;
+    z-index: 1;
+  }
+
+  .modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.4rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .modal__heading {
+    flex: 1;
+  }
+
+  .modal__dates {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .modal__date {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(210, 236, 255, 0.82);
+  }
+
+  .modal__date::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, hsl(var(--hue, 210), 90%, 72%), rgba(255, 255, 255, 0.75));
+    box-shadow: 0 0 16px hsla(var(--hue, 210), 90%, 72%, 0.8);
+  }
+
+  .modal__tenure {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(210, 236, 255, 0.58);
+  }
+
+  .modal__title {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.35rem, 3vw, 1.7rem);
+    color: hsl(var(--hue, 210), 90%, 74%);
+    text-shadow: 0 0 24px hsla(var(--hue, 210), 92%, 70%, 0.6);
+  }
+
+  .modal__company {
+    margin: 0 0 0.6rem;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: 0.03em;
+    color: rgba(188, 230, 255, 0.9);
+  }
+
+  .modal__summary {
+    margin: 0;
+    font-size: 1rem;
+    color: rgba(224, 238, 255, 0.9);
+  }
+
+  .modal__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 999px;
+    border: 1px solid rgba(141, 197, 255, 0.35);
+    background: rgba(18, 24, 42, 0.6);
+    color: rgba(210, 236, 255, 0.85);
+    cursor: pointer;
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  }
+
+  .modal__close:hover,
+  .modal__close:focus-visible {
+    background: rgba(35, 52, 84, 0.8);
+    border-color: rgba(141, 197, 255, 0.55);
+    outline: none;
+    transform: scale(1.05);
+  }
+
+  .modal__close svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .modal__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0 0 1.1rem;
+  }
+
+  .modal__pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(141, 197, 255, 0.3);
+    background: rgba(141, 197, 255, 0.18);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(210, 236, 255, 0.9);
+    font-weight: 600;
+  }
+
+  .modal__pill--muted {
+    background: rgba(110, 132, 185, 0.12);
+    border-color: rgba(141, 197, 255, 0.18);
+    color: rgba(210, 236, 255, 0.75);
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+
+  .modal__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0 0 1.3rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .modal__skills li {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(80, 160, 255, 0.18);
+    border: 1px solid rgba(120, 200, 255, 0.28);
+    font-size: 0.82rem;
+    color: rgba(224, 238, 255, 0.92);
+    line-height: 1.2;
+  }
+
+  .modal__body {
+    border-top: 1px solid rgba(141, 197, 255, 0.18);
+    padding-top: 1.3rem;
+  }
+
+  .modal__body h4 {
+    margin: 0 0 0.9rem;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(210, 236, 255, 0.85);
+  }
+
+  .modal__body ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .modal__body li {
+    line-height: 1.55;
+    color: rgba(226, 240, 255, 0.9);
+  }
+
+  .modal__body p {
+    margin: 0;
+    line-height: 1.55;
+    color: rgba(226, 240, 255, 0.85);
+  }
+
+  .modal__placeholder {
+    font-style: italic;
+    color: rgba(210, 236, 255, 0.7);
+  }
+
+  @keyframes modal-fade {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes modal-pop {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
   @keyframes float {
     0% {
       transform: translate3d(0, 0, 0) scale(1) rotate(0);
@@ -502,6 +1082,37 @@
 
     50% {
       opacity: 0.2;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modal-backdrop {
+      padding: 1.2rem;
+      align-items: flex-end;
+    }
+
+    .modal {
+      width: calc(100% - 1rem);
+      max-height: calc(100vh - 1.5rem);
+      padding: 1.4rem 1.15rem 1.6rem;
+    }
+
+    .modal__header {
+      flex-direction: column-reverse;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .modal__close {
+      align-self: flex-end;
+    }
+
+    .modal__skills {
+      gap: 0.35rem;
+    }
+
+    .modal__skills li {
+      font-size: 0.78rem;
     }
   }
 
@@ -560,15 +1171,29 @@
       font-size: clamp(1.1rem, 4vw, 1.35rem);
     }
 
-    .asteroid__description {
-      font-size: 0.95rem;
+    .asteroid__summary {
+      font-size: 0.93rem;
+    }
+
+    .asteroid__meta {
+      gap: 0.35rem;
+    }
+
+    .asteroid__skills {
+      gap: 0.3rem;
+    }
+
+    .asteroid__skills li {
+      font-size: 0.74rem;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .cosmic-stage::before,
     .cosmic-stage::after,
-    .cosmic-lane::after {
+    .cosmic-lane::after,
+    .modal-backdrop,
+    .modal {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
     }
