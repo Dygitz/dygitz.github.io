@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onDestroy, tick } from 'svelte';
 
   export let items = [
     {
@@ -7,24 +7,36 @@
       title: 'Job 4',
       company: 'Company 4',
       description: 'Customer Success Representative.',
+      location: 'Remote',
+      tagline: 'Growth Team',
+      skills: ['Skill one', 'Skill two', 'Skill three'],
     },
     {
       dateRange: '2019 - 2021',
       title: 'Job 3',
       company: 'Company 3',
       description: 'Project Management, System Administrator.',
+      location: 'Austin, TX · Hybrid',
+      tagline: 'Program Management',
+      skills: ['Leadership', 'Communication'],
     },
     {
       dateRange: '2018 - 2019',
       title: 'Job 2',
       company: 'Company 2',
       description: 'Support Specialist.',
+      location: 'Toronto, Canada',
+      tagline: 'Support Team',
+      skills: ['Customer Support'],
     },
     {
       dateRange: '2017 - 2018',
       title: 'Job 1',
       company: 'Company 1',
       description: 'Debugging, Code QA.',
+      location: 'On-site',
+      tagline: 'Quality Assurance',
+      skills: ['QA Testing'],
     }
   ];
 
@@ -72,8 +84,89 @@
   ];
 
   let cosmicItems = [];
-  let visibleItems = new Set();
-  let floatingItems = new Set();
+  let activeIndex = null;
+  let previouslyFocused = null;
+  let modalCloseButton;
+
+  const floatingFrameIds = new WeakMap();
+  const observerOptions = {
+    threshold: 0.35,
+    rootMargin: '0px 0px -10% 0px',
+  };
+  let intersectionObserver;
+
+  function handleIntersections(entries) {
+    for (const entry of entries) {
+      const target = entry.target;
+
+      if (!(target instanceof HTMLElement)) continue;
+
+      if (entry.isIntersecting) {
+        target.classList.add('is-visible');
+
+        if (target.classList.contains('is-floating')) continue;
+
+        const pendingId = floatingFrameIds.get(target);
+        if (pendingId && typeof cancelAnimationFrame === 'function') {
+          cancelAnimationFrame(pendingId);
+        }
+
+        if (typeof requestAnimationFrame === 'function') {
+          const rafId = requestAnimationFrame(() => {
+            target.classList.add('is-floating');
+            floatingFrameIds.delete(target);
+          });
+          floatingFrameIds.set(target, rafId);
+        } else {
+          target.classList.add('is-floating');
+        }
+      } else {
+        target.classList.remove('is-floating');
+
+        const pendingId = floatingFrameIds.get(target);
+        if (pendingId && typeof cancelAnimationFrame === 'function') {
+          cancelAnimationFrame(pendingId);
+        }
+        floatingFrameIds.delete(target);
+      }
+    }
+  }
+
+  function observeAsteroid(node) {
+    if (!(node instanceof HTMLElement)) {
+      return {};
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      node.classList.add('is-visible', 'is-floating');
+      return {
+        destroy() {
+          node.classList.remove('is-floating');
+          node.classList.remove('is-visible');
+        },
+      };
+    }
+
+    if (!intersectionObserver) {
+      intersectionObserver = new IntersectionObserver(handleIntersections, observerOptions);
+    }
+
+    intersectionObserver.observe(node);
+
+    return {
+      destroy() {
+        const pendingId = floatingFrameIds.get(node);
+        if (pendingId && typeof cancelAnimationFrame === 'function') {
+          cancelAnimationFrame(pendingId);
+        }
+        floatingFrameIds.delete(node);
+
+        if (intersectionObserver) {
+          intersectionObserver.unobserve(node);
+        }
+      },
+    };
+  }
 
   $: cosmicItems = items.map((item, index) => {
     const variation = variations[index % variations.length];
@@ -93,84 +186,162 @@
     };
   });
 
-  onMount(() => {
-    const nodes = Array.from(document.querySelectorAll('.asteroid'));
+  $: activeItem =
+    activeIndex !== null && cosmicItems[activeIndex] ? cosmicItems[activeIndex] : null;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        let nextVisible = null;
-        let nextFloating = null;
-
-        entries.forEach((entry) => {
-          const indexValue = Number(entry.target.dataset.index);
-          if (Number.isNaN(indexValue)) return;
-
-          if (entry.isIntersecting) {
-            if (!visibleItems.has(indexValue)) {
-              if (!nextVisible) {
-                nextVisible = new Set(visibleItems);
-              }
-              nextVisible.add(indexValue);
-            }
-
-            if (!floatingItems.has(indexValue)) {
-              if (!nextFloating) {
-                nextFloating = new Set(floatingItems);
-              }
-              nextFloating.add(indexValue);
-            }
-          } else if (floatingItems.has(indexValue)) {
-            if (!nextFloating) {
-              nextFloating = new Set(floatingItems);
-            }
-            nextFloating.delete(indexValue);
-          }
-        });
-
-        if (nextVisible) {
-          visibleItems = nextVisible;
+  $: if (typeof document !== 'undefined') {
+    if (activeItem) {
+      document.body.classList.add('modal-open');
+      tick().then(() => {
+        if (modalCloseButton) {
+          modalCloseButton.focus();
         }
+      });
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+  }
 
-        if (nextFloating) {
-          floatingItems = nextFloating;
-        }
-      },
-      {
-        threshold: 0.35,
-        rootMargin: '0px 0px -10% 0px',
-      }
-    );
-
-    nodes.forEach((node) => observer.observe(node));
-
-    return () => {
-      nodes.forEach((node) => observer.unobserve(node));
-      observer.disconnect();
-    };
+  onDestroy(() => {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('modal-open');
+    }
+    if (intersectionObserver) {
+      intersectionObserver.disconnect();
+      intersectionObserver = null;
+    }
   });
+
+  function openModal(index, trigger) {
+    if (typeof HTMLElement !== 'undefined' && trigger instanceof HTMLElement) {
+      previouslyFocused = trigger;
+    } else {
+      previouslyFocused = null;
+    }
+    activeIndex = index;
+  }
+
+  function closeModal() {
+    activeIndex = null;
+    if (typeof HTMLElement !== 'undefined' && previouslyFocused instanceof HTMLElement) {
+      previouslyFocused.focus();
+    }
+    previouslyFocused = null;
+  }
+
+  function handleWindowKeydown(event) {
+    if (event.key === 'Escape' && activeItem) {
+      closeModal();
+    }
+  }
 </script>
+
+<svelte:window on:keydown={handleWindowKeydown} />
 
 <div class="cosmic-stage">
   <div class="cosmic-lane" aria-hidden="true"></div>
   {#each cosmicItems as item (item.index)}
     <article
       class="asteroid"
-      class:is-visible={visibleItems.has(item.index)}
-      class:is-floating={floatingItems.has(item.index)}
       data-side={item.side}
       data-index={item.index}
+      use:observeAsteroid
       style={`--delay:${item.index * 140}ms; --drift:${item.drift}; --rotation:${item.rotation}deg; --scale:${item.scale}; --hue:${item.hue}; --float-duration:${item.floatDuration}s; --float-delay:${item.floatDelay}s; --trail-skew:${item.trailSkew}deg;`}
     >
+      <button
+        class="asteroid__trigger"
+        type="button"
+        aria-haspopup="dialog"
+        aria-labelledby={`job-${item.index}-title job-${item.index}-company`}
+        on:click={(event) => openModal(item.index, event.currentTarget)}
+      >
+        <span class="sr-only">View details</span>
+      </button>
       <div class="asteroid__trail" aria-hidden="true"></div>
       <div class="asteroid__core">
         <span class="asteroid__date">{item.dateRange}</span>
-        <h3 class="asteroid__title">{item.title}</h3>
-        <p class="asteroid__company">{item.company}</p>
-        <p class="asteroid__description">{item.description}</p>
+        <h3 class="asteroid__title" id={`job-${item.index}-title`}>{item.title}</h3>
+        <p class="asteroid__company" id={`job-${item.index}-company`}>{item.company}</p>
+        {#if item.location}
+          <p class="asteroid__location">{item.location}</p>
+        {/if}
+        {#if item.tagline}
+          <p class="asteroid__tagline">{item.tagline}</p>
+        {/if}
+        {#if item.skills && item.skills.length > 0}
+          <ul class="asteroid__skills" aria-label="Key skills">
+            {#each item.skills.slice(0, 3) as skill}
+              <li>{skill}</li>
+            {/each}
+            {#if item.skills.length > 3}
+              <li>+{item.skills.length - 3} more</li>
+            {/if}
+          </ul>
+        {/if}
+        <div class="asteroid__cta" aria-hidden="true">
+          <span>View details</span>
+          <svg class="asteroid__cta-icon" viewBox="0 0 16 16" role="presentation">
+            <path d="M3 8h8.586l-2.793-2.793L9.5 4.5 14 9l-4.5 4.5-0.707-0.707L11.586 9H3z"></path>
+          </svg>
+        </div>
       </div>
     </article>
   {/each}
 </div>
+
+{#if activeItem}
+  <div class="experience-modal-overlay" role="presentation">
+    <button
+      class="experience-modal-overlay__backdrop"
+      type="button"
+      tabindex="-1"
+      aria-hidden="true"
+      on:click={closeModal}
+    ></button>
+    <div
+      class="experience-modal"
+      id="experience-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={`modal-job-${activeItem.index}-title`}
+      style={`--hue:${activeItem.hue}`}
+    >
+      <button
+        class="modal__close"
+        type="button"
+        on:click={closeModal}
+        aria-label="Close experience details"
+        bind:this={modalCloseButton}
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+      <header class="modal__header">
+        <span class="modal__date">{activeItem.dateRange}</span>
+        <h3 class="modal__title" id={`modal-job-${activeItem.index}-title`}>{activeItem.title}</h3>
+        <p class="modal__company">{activeItem.company}</p>
+        {#if activeItem.location}
+          <p class="modal__location">{activeItem.location}</p>
+        {/if}
+        {#if activeItem.tagline}
+          <p class="modal__tagline">{activeItem.tagline}</p>
+        {/if}
+      </header>
+      {#if activeItem.description}
+        <p class="modal__description">{activeItem.description}</p>
+      {/if}
+      {#if activeItem.skills && activeItem.skills.length > 0}
+        <div class="modal__skills">
+          <h4>Skills</h4>
+          <ul>
+            {#each activeItem.skills as skill}
+              <li>{skill}</li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}
 
 <style>
   .cosmic-stage {
@@ -372,6 +543,22 @@
     pointer-events: none;
   }
 
+  .asteroid__trigger {
+    position: absolute;
+    inset: 0;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 24px;
+    z-index: 3;
+  }
+
+  .asteroid__trigger:focus-visible {
+    outline: 3px solid rgba(138, 213, 255, 0.75);
+    outline-offset: 6px;
+  }
+
   .asteroid__trail {
     position: absolute;
     top: 50%;
@@ -445,11 +632,65 @@
     color: rgba(188, 230, 255, 0.85);
   }
 
-  .asteroid__description {
-    margin: 0;
-    color: rgba(221, 235, 255, 0.85);
-    line-height: 1.55;
-    font-size: 0.98rem;
+  .asteroid__location {
+    margin: 0 0 0.45rem;
+    color: rgba(210, 230, 255, 0.7);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+  }
+
+  .asteroid__tagline {
+    margin: 0 0 0.85rem;
+    color: rgba(214, 235, 255, 0.9);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .asteroid__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.2rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .asteroid__skills li {
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(109, 205, 255, 0.14);
+    color: rgba(215, 235, 255, 0.85);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .asteroid__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 1.1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(198, 226, 255, 0.7);
+    transition: transform 0.35s ease, color 0.35s ease;
+  }
+
+  .asteroid__cta-icon {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+  }
+
+  .asteroid:hover .asteroid__cta {
+    color: rgba(255, 255, 255, 0.92);
+    transform: translateX(6px);
+  }
+
+  .asteroid__trigger:focus-visible ~ .asteroid__core .asteroid__cta {
+    color: rgba(255, 255, 255, 0.92);
+    transform: translateX(6px);
   }
 
   .asteroid.is-visible {
@@ -505,6 +746,191 @@
     }
   }
 
+  .experience-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    background: rgba(6, 12, 28, 0.75);
+    backdrop-filter: blur(14px);
+    z-index: 30;
+    animation: overlay-fade 0.25s ease;
+  }
+
+  .experience-modal-overlay__backdrop {
+    position: absolute;
+    inset: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    z-index: 0;
+  }
+
+  .experience-modal-overlay__backdrop:focus-visible {
+    outline: 3px solid rgba(138, 213, 255, 0.6);
+    outline-offset: 4px;
+  }
+
+  .experience-modal {
+    position: relative;
+    width: min(640px, 100%);
+    max-height: min(85vh, 680px);
+    overflow-y: auto;
+    padding: clamp(1.6rem, 3vw, 2.4rem);
+    border-radius: 24px;
+    background: linear-gradient(145deg, rgba(19, 28, 52, 0.94), rgba(10, 17, 32, 0.88));
+    border: 1px solid rgba(150, 210, 255, 0.25);
+    box-shadow: 0 32px 60px rgba(6, 8, 20, 0.7);
+    color: rgba(226, 238, 255, 0.96);
+    animation: modal-zoom 0.28s ease;
+    z-index: 1;
+  }
+
+  .modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 999px;
+    border: 1px solid rgba(195, 226, 255, 0.3);
+    background: rgba(11, 18, 33, 0.65);
+    color: rgba(220, 236, 255, 0.82);
+    font-size: 1.2rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease;
+  }
+
+  .modal__close:hover,
+  .modal__close:focus-visible {
+    background: rgba(38, 58, 92, 0.9);
+    color: rgba(255, 255, 255, 0.95);
+    transform: scale(1.05);
+    outline: none;
+  }
+
+  .modal__header {
+    display: grid;
+    gap: 0.4rem;
+    padding-right: 2.8rem;
+  }
+
+  .modal__date {
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(202, 228, 255, 0.7);
+  }
+
+  .modal__title {
+    margin: 0;
+    font-size: clamp(1.35rem, 3vw, 1.7rem);
+    color: hsl(var(--hue, 210), 88%, 72%);
+    text-shadow: 0 0 24px hsla(var(--hue, 210), 92%, 72%, 0.5);
+  }
+
+  .modal__company {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(214, 235, 255, 0.92);
+  }
+
+  .modal__location,
+  .modal__tagline {
+    margin: 0;
+    color: rgba(204, 224, 255, 0.78);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+  }
+
+  .modal__tagline {
+    font-weight: 600;
+    color: rgba(220, 240, 255, 0.9);
+  }
+
+  .modal__description {
+    margin: 1.4rem 0 0;
+    font-size: 0.98rem;
+    line-height: 1.7;
+    color: rgba(226, 238, 255, 0.88);
+  }
+
+  .modal__skills {
+    margin-top: 1.6rem;
+  }
+
+  .modal__skills h4 {
+    margin: 0 0 0.7rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: rgba(198, 222, 255, 0.8);
+  }
+
+  .modal__skills ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .modal__skills li {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(111, 207, 255, 0.18);
+    color: rgba(222, 238, 255, 0.9);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @keyframes overlay-fade {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes modal-zoom {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.96);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  :global(body.modal-open) {
+    overflow: hidden;
+  }
+
   @media (max-width: 900px) {
     .cosmic-lane {
       left: 52%;
@@ -535,6 +961,14 @@
     .asteroid__trail {
       display: none;
     }
+
+    .experience-modal {
+      width: min(560px, 100%);
+    }
+
+    .modal__header {
+      padding-right: 2rem;
+    }
   }
 
   @media (max-width: 560px) {
@@ -560,8 +994,13 @@
       font-size: clamp(1.1rem, 4vw, 1.35rem);
     }
 
-    .asteroid__description {
-      font-size: 0.95rem;
+    .asteroid__skills li {
+      font-size: 0.7rem;
+    }
+
+    .experience-modal {
+      padding: 1.4rem;
+      max-height: 90vh;
     }
   }
 
@@ -579,6 +1018,12 @@
 
     .asteroid.is-floating .asteroid__trail::after {
       animation: none;
+    }
+
+    .experience-modal-overlay,
+    .experience-modal {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
     }
   }
 </style>
