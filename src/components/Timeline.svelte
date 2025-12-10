@@ -332,6 +332,8 @@
     margin: 0 auto;
     max-width: 960px;
     padding: clamp(3rem, 7vw, 5rem) 1.5rem clamp(6rem, 9vw, 8rem);
+    width: min(960px, 100%);
+    overflow: visible;
     z-index: 1;
   }
 
@@ -836,6 +838,12 @@
   .modal__tagline {
     font-weight: 600;
     color: rgba(220, 240, 255, 0.9);
+  }
+
+  @media (max-width: 767px) {
+    .cosmic-stage {
+      overflow: hidden;
+    }
   }
 
   .modal__description,
