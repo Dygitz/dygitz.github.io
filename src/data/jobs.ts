@@ -13,9 +13,14 @@ export const jobs: Job[] = [
     dateRange: "Sep 2025 - Present · 1 mo",
     title: "Software Engineer Intern",
     company: "Super.com",
-    location: "San Francisco, California, United States · Remote",
+    location: "San Francisco, California, United States",
     tagline: "Infrastructure Team 🔧",
     skills: ["Kubernetes", "Amazon Web Services (AWS)", "Datadog"],
+    description: [
+      "Deployed GDPR-compliant service on AWS (ElastiCache/RDS/EC2), enabling EU market expansion.",
+      "Built AI coding agent responsible for shipping 33 production PRs, along with Datadog usage dashboard.",
+      "Built AI-powered CI bot to triage and diagnose E2E test failures, cutting debug and deploy time.",
+    ],
   },
   {
     dateRange: "Dec 2024 - Apr 2025 · 5 mos",
