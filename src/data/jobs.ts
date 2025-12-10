@@ -10,11 +10,11 @@ export interface Job {
 
 export const jobs: Job[] = [
   {
-    dateRange: "Sep 2025 - Present · 1 mo",
+    dateRange: "Sep 2025 - Dec 2025 · 4 mos",
     title: "Software Engineer Intern",
     company: "Super.com",
     location: "San Francisco, California, United States",
-    tagline: "Infrastructure Team 🔧",
+    tagline: "Infrastructure + DevOps 🔧",
     skills: ["Kubernetes", "Amazon Web Services (AWS)", "Datadog"],
     description: [
       "Deployed GDPR-compliant service on AWS (ElastiCache/RDS/EC2), enabling EU market expansion.",
