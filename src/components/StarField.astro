@@ -36,10 +36,12 @@
 		:global(body) {
 			cursor: none;
 		}
-		:global(body.modal-open) {
+		:global(body.modal-open),
+		:global(body.cursor-visible) {
 			cursor: auto;
 		}
-		:global(body.modal-open) .cursor-blackhole {
+		:global(body.modal-open) .cursor-blackhole,
+		:global(body.cursor-visible) .cursor-blackhole {
 			display: none;
 		}
 	}

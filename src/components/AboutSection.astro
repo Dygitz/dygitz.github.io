@@ -64,3 +64,19 @@
 		}
 	}
 </style>
+
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		const card = document.querySelector(".about-card");
+		if (!card) return;
+
+		const body = document.body;
+		const enableCursor = () => body.classList.add("cursor-visible");
+		const disableCursor = () => body.classList.remove("cursor-visible");
+
+		card.addEventListener("pointerenter", enableCursor);
+		card.addEventListener("pointerleave", disableCursor);
+		card.addEventListener("focusin", enableCursor);
+		card.addEventListener("focusout", disableCursor);
+	});
+</script>
