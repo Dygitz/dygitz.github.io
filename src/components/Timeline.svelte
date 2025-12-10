@@ -451,6 +451,22 @@
     will-change: transform, opacity;
   }
 
+  @media (max-width: 767px) {
+    .asteroid::before,
+    .asteroid::after,
+    .asteroid__trail {
+      display: none;
+    }
+
+    .asteroid {
+      transform: none !important;
+      filter: none;
+      opacity: 1;
+      margin: clamp(1.6rem, 5vw, 2.4rem) 0;
+      padding: 0;
+    }
+  }
+
   .asteroid[data-side='left'] {
     margin-right: auto;
     padding-right: clamp(0.75rem, 4vw, 2.5rem);
