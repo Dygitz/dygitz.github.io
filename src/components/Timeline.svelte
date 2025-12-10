@@ -465,6 +465,17 @@
       margin: clamp(1.6rem, 5vw, 2.4rem) 0;
       padding: 0;
     }
+
+    .asteroid__core {
+      background: rgba(16, 22, 41, 0.9);
+      box-shadow: none;
+      backdrop-filter: none;
+      border: 1px solid rgba(141, 197, 255, 0.12);
+    }
+
+    .asteroid__core::before {
+      display: none;
+    }
   }
 
   .asteroid[data-side='left'] {
