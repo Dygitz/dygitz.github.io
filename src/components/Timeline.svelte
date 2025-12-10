@@ -294,7 +294,7 @@
         <span class="modal__date">{activeItem.dateRange}</span>
         <h3 class="modal__title" id={`modal-job-${activeItem.index}-title`}>{activeItem.title}</h3>
         <p class="modal__company">{activeItem.company}</p>
-        {#if activeItem.location}
+      {#if activeItem.location}
           <p class="modal__location">{activeItem.location}</p>
         {/if}
         {#if activeItem.tagline}
@@ -302,7 +302,15 @@
         {/if}
       </header>
       {#if activeItem.description}
-        <p class="modal__description">{activeItem.description}</p>
+        {#if Array.isArray(activeItem.description)}
+          <ul class="modal__description-list">
+            {#each activeItem.description as bullet}
+              <li>{bullet}</li>
+            {/each}
+          </ul>
+        {:else}
+          <p class="modal__description">{activeItem.description}</p>
+        {/if}
       {/if}
       {#if activeItem.skills && activeItem.skills.length > 0}
         <div class="modal__skills">
@@ -830,11 +838,23 @@
     color: rgba(220, 240, 255, 0.9);
   }
 
-  .modal__description {
+  .modal__description,
+  .modal__description-list {
     margin: 1.4rem 0 0;
     font-size: 0.98rem;
     line-height: 1.7;
     color: rgba(226, 238, 255, 0.88);
+  }
+
+  .modal__description-list {
+    padding-left: 1.2rem;
+    list-style: disc;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .modal__description-list li {
+    margin: 0;
   }
 
   .modal__skills {

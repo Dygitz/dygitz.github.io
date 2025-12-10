@@ -2,7 +2,7 @@ export interface Job {
   dateRange: string;
   title: string;
   company: string;
-  description: string;
+  description?: string | string[];
   location?: string;
   tagline?: string;
   skills?: string[];
@@ -16,7 +16,6 @@ export const jobs: Job[] = [
     location: "San Francisco, California, United States · Remote",
     tagline: "Infrastructure Team 🔧",
     skills: ["Kubernetes", "Amazon Web Services (AWS)", "Datadog"],
-    description: "",
   },
   {
     dateRange: "Dec 2024 - Apr 2025 · 5 mos",
@@ -25,8 +24,12 @@ export const jobs: Job[] = [
     location: "San Francisco, California, United States",
     tagline: "Fullstack 🚀 YC S24",
     skills: ["Next.js", "PostgreSQL", "Temporal", "LiveKit", "tRPC", "Datadog"],
-    description:
-      "Built dynamically generated IVR state machines for AI voice agent testing, directly leading to new customers. Investigated and fixed critical Redis concurrency issues, reducing call error rate by 85%. Automated frontend and backend tests using GitHub Actions and scheduled jobs to catch regressions in CI/CD. Enabled third-party voice agents to integrate with the Hamming platform, unlocking new customers.",
+    description: [
+      "Built dynamically generated IVR state machines for AI voice agent testing, directly leading to new customers.",
+      "Investigated and fixed critical Redis concurrency issues, reducing call error rate by 85%.",
+      "Automated frontend and backend tests using GitHub Actions and scheduled jobs to catch regressions in CI/CD.",
+      "Enabled third-party voice agents to integrate with the Hamming platform, unlocking new customers.",
+    ],
   },
   {
     dateRange: "Oct 2024 - Present · 1 yr",
@@ -34,7 +37,6 @@ export const jobs: Job[] = [
     company: "Cohere For AI",
     location: "Remote",
     tagline: "Cohere Labs",
-    description: "",
   },
   {
     dateRange: "Feb 2024 - Oct 2024 · 9 mos",
@@ -43,8 +45,9 @@ export const jobs: Job[] = [
     location: "Waterloo, Ontario, Canada · Hybrid",
     tagline: "Machine Learning 🚙",
     skills: ["ROS2", "Docker", "PyTorch", "C++", "Python (Programming Language)"],
-    description:
-      "Trained and deployed a graph-based trajectory prediction model leveraging the nuScenes dataset to improve the team's autonomous driving stack.",
+    description: [
+      "Trained and deployed a graph-based trajectory prediction model leveraging the nuScenes dataset to improve the autonomous driving stack.",
+    ],
   },
   {
     dateRange: "May 2024 - Aug 2024 · 4 mos",
@@ -63,8 +66,12 @@ export const jobs: Job[] = [
       "C++",
       "Python (Programming Language)",
     ],
-    description:
-      "Built a fully autonomous robot from the ground up in a team of two to deliver groceries across campus. Engineered a ROS2 stack integrating sensor fusion (EKF), AMCL/SLAM localization, Hybrid A* motion planning, and MPPI control for centimeter-level navigation. Integrated Jetson Orin Nano, LiDAR, RTK GPS, depth cameras, IMU, and Arduino subsystems. Created an OpenCV-powered AI checkout system to classify over 250K Walmart products and prevent retail theft.",
+    description: [
+      "Built a fully autonomous robot from the ground up in a team of two to deliver groceries across campus.",
+      "Engineered a ROS2 stack integrating sensor fusion (EKF), AMCL/SLAM localization, Hybrid A* motion planning, and MPPI control for centimeter-level navigation.",
+      "Integrated Jetson Orin Nano, LiDAR, RTK GPS, depth cameras, IMU, and Arduino subsystems.",
+      "Created an OpenCV-powered AI checkout system to classify over 250K Walmart products and prevent retail theft.",
+    ],
   },
   {
     dateRange: "May 2023 - Jun 2023 · 2 mos",
@@ -73,8 +80,9 @@ export const jobs: Job[] = [
     location: "Remote",
     tagline: "Machine Learning 🧠",
     skills: ["Pandas", "Jupyter Notebook", "NumPy", "PyTorch", "Python (Programming Language)", "Git"],
-    description:
+    description: [
       "Trained convolutional neural networks for image classification on FashionMNIST and ImageNet, achieving 96% accuracy with a 7.7M-parameter transfer learning pipeline.",
+    ],
   },
   {
     dateRange: "Jun 2022 - Aug 2022 · 3 mos",
@@ -90,8 +98,10 @@ export const jobs: Job[] = [
       "Apache Jena",
       "Java (Programming Language)",
     ],
-    description:
-      "Developed an interactive knowledge graph visualization tool and a custom query language for filtering, styling, and enhancing RDF data displays. Scraped SEC filings to generate realistic data for demonstrations of the platform.",
+    description: [
+      "Developed an interactive knowledge graph visualization tool and a custom query language for filtering, styling, and enhancing RDF data displays.",
+      "Scraped SEC filings to generate realistic data for demonstrations of the platform.",
+    ],
   },
   {
     dateRange: "Jun 2021 - Aug 2021 · 3 mos",
@@ -100,7 +110,8 @@ export const jobs: Job[] = [
     location: "Paoli, Pennsylvania",
     tagline: "Backend ⚙️",
     skills: ["Java (Programming Language)", "REST APIs"],
-    description:
+    description: [
       "Designed a Java SDK to abstract interactions with a fraud-detection knowledge graph containing over 210 million relationships.",
+    ],
   },
 ];
