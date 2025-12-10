@@ -50,7 +50,7 @@ import astronautAnimation from "../../astronaut.json";
 		position: absolute;
 		font-size: 7vw;
 		top: 46%;
-		font-family: "Space Grotesk", sans-serif;
+		font-family: "Sora", sans-serif;
 		font-weight: 520;
 		letter-spacing: -0.01em;
 		text-align: center;
@@ -67,7 +67,7 @@ import astronautAnimation from "../../astronaut.json";
 
 	#intro {
 		font-size: 4vw;
-		font-family: "Space Grotesk", sans-serif;
+		font-family: "Sora", sans-serif;
 		font-weight: 520;
 		letter-spacing: -0.01em;
 		text-align: center;
@@ -163,7 +163,7 @@ import astronautAnimation from "../../astronaut.json";
 		hiddenElement.style.position = "absolute";
 		hiddenElement.style.whiteSpace = "nowrap";
 		hiddenElement.style.fontSize = "7vw";
-		hiddenElement.style.fontFamily = "Space Grotesk";
+		hiddenElement.style.fontFamily = "Sora";
 		hiddenElement.style.fontWeight = "520";
 		hiddenElement.style.letterSpacing = "-0.01em";
 		if (isMobile) {
@@ -186,16 +186,16 @@ import astronautAnimation from "../../astronaut.json";
 			element.style.visibility = "visible";
 			element.style.display = "inline-block";
 			if (isMobile) {
-				element.style.fontSize = "14vw"; // larger for mobile
-			} else {
-				element.style.fontSize = "7vw"; // default for desktop
-			}
-			element.style.fontFamily = "Space Grotesk";
-			element.style.fontWeight = "520";
-			element.style.letterSpacing = "-0.01em";
-			element.style.textAlign = "center";
-			// While typing: gradient background with black text
-			element.style.background =
+			element.style.fontSize = "14vw"; // larger for mobile
+		} else {
+			element.style.fontSize = "7vw"; // default for desktop
+		}
+		element.style.fontFamily = "Sora";
+		element.style.fontWeight = "520";
+		element.style.letterSpacing = "-0.01em";
+		element.style.textAlign = "center";
+		// While typing: gradient background with black text
+		element.style.background =
 				"linear-gradient(90deg, #8e2de2, #4a00e0, #23d5ab)";
 			element.style.webkitBackgroundClip = "border-box";
 			element.style.backgroundClip = "border-box";
