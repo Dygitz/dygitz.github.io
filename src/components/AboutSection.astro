@@ -30,13 +30,56 @@
 	}
 
 	.about-card {
-		background: #333;
-		border-radius: 15px;
+		position: relative;
+		overflow: hidden;
+		border-radius: 16px;
 		padding: 2rem;
 		max-width: 800px;
 		width: min(92%, 520px);
 		margin: 0 auto;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+		background: rgba(12, 18, 32, 0.6);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		backdrop-filter: blur(14px) saturate(140%);
+		-webkit-backdrop-filter: blur(14px) saturate(140%);
+
+		box-shadow:
+			0 20px 60px rgba(0, 0, 0, 0.55),
+			0 0 0 1px rgba(255, 255, 255, 0.04);
+		transform: perspective(900px) rotateX(0deg) rotateY(0deg);
+		transform-style: preserve-3d;
+		will-change: transform;
+		transition:
+			transform 180ms ease,
+			box-shadow 180ms ease,
+			border-color 180ms ease;
+	}
+
+	.about-card::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background:
+			radial-gradient(
+				120% 120% at 10% 0%,
+				rgba(255, 255, 255, 0.18) 0%,
+				transparent 60%
+			),
+			linear-gradient(
+				135deg,
+				rgba(59, 130, 246, 0.08),
+				rgba(236, 72, 153, 0.05)
+			);
+		opacity: 0.9;
+		pointer-events: none;
+	}
+
+	.about-card:hover {
+		box-shadow:
+			0 26px 80px rgba(0, 0, 0, 0.65),
+			0 0 0 1px rgba(255, 255, 255, 0.08);
+		border-color: rgba(255, 255, 255, 0.18);
 	}
 
 	.about-title {
@@ -48,6 +91,8 @@
 	}
 
 	.about-content {
+		position: relative;
+		z-index: 1;
 		color: #fff;
 		font-family: Montserrat, sans-serif;
 		font-size: 1.1rem;
@@ -78,5 +123,55 @@
 		card.addEventListener("pointerleave", disableCursor);
 		card.addEventListener("focusin", enableCursor);
 		card.addEventListener("focusout", disableCursor);
+
+		const canTilt =
+			window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+		const reduceMotion =
+			window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		if (!canTilt || reduceMotion) return;
+
+		const maxTilt = 6;
+		const maxTranslate = 8;
+		let rafId = null;
+		let lastEvent = null;
+
+		const updateTransform = () => {
+			rafId = null;
+			if (!lastEvent) return;
+
+			const rect = card.getBoundingClientRect();
+			const x = (lastEvent.clientX - rect.left) / rect.width;
+			const y = (lastEvent.clientY - rect.top) / rect.height;
+
+			const rotateY = (x - 0.5) * maxTilt * 2;
+			const rotateX = (0.5 - y) * maxTilt * 2;
+			const translateX = (x - 0.5) * maxTranslate * 2;
+			const translateY = (y - 0.5) * maxTranslate * 2;
+
+			card.style.transform =
+				`perspective(900px) rotateX(${rotateX}deg) ` +
+				`rotateY(${rotateY}deg) translate3d(${translateX}px, ${translateY}px, 0)`;
+		};
+
+		const onMove = (event) => {
+			lastEvent = event;
+			if (rafId === null) {
+				rafId = requestAnimationFrame(updateTransform);
+			}
+		};
+
+		const resetTilt = () => {
+			lastEvent = null;
+			if (rafId !== null) {
+				cancelAnimationFrame(rafId);
+				rafId = null;
+			}
+			card.style.transform =
+				"perspective(900px) rotateX(0deg) rotateY(0deg) translate3d(0, 0, 0)";
+		};
+
+		card.addEventListener("pointermove", onMove);
+		card.addEventListener("pointerleave", resetTilt);
+		card.addEventListener("blur", resetTilt);
 	});
 </script>
