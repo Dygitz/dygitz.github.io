@@ -18,8 +18,8 @@ export const jobs: Job[] = [
     skills: ["Kubernetes", "Amazon Web Services (AWS)", "Datadog"],
     description: [
       "Deployed GDPR-compliant service on AWS (ElastiCache/RDS/EC2), enabling EU market expansion.",
-      "Built AI coding agent responsible for shipping 33 production PRs, along with Datadog usage dashboard.",
-      "Built AI-powered CI bot to triage and diagnose E2E test failures, cutting debug and deploy time.",
+      "Built AI coding agent responsible for shipping 37 production PRs, along with Datadog usage dashboard.",
+      "Built AI-powered CI bot to triage and diagnose E2E test failures, cutting production debug and deploy time.",
     ],
   },
   {
