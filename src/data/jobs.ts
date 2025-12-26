@@ -13,7 +13,7 @@ export const jobs: Job[] = [
     dateRange: "Sep 2025 - Dec 2025 · 4 mos",
     title: "Software Engineer Intern",
     company: "Super.com",
-    location: "San Francisco, California, United States",
+    location: "Remote",
     tagline: "Infrastructure + DevOps 🔧",
     skills: ["Kubernetes", "Amazon Web Services (AWS)", "Datadog"],
     description: [
