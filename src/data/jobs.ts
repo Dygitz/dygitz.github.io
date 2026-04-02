@@ -37,13 +37,6 @@ export const jobs: Job[] = [
     ],
   },
   {
-    dateRange: "Oct 2024 - Present · 1 yr",
-    title: "Member",
-    company: "Cohere For AI",
-    location: "Remote",
-    tagline: "Cohere Labs",
-  },
-  {
     dateRange: "Feb 2024 - Oct 2024 · 9 mos",
     title: "Autonomous Software Developer",
     company: "WATonomous",
