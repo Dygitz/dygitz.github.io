@@ -12,14 +12,6 @@ import Email from './email.svelte';
 		<a href="https://github.com/Dygitz" target="_blank">
 			<Github width="50px" height="50px" />
 		</a>
-		<a
-			href="https://se-webring.xyz/"
-			target="_blank"
-			rel="noopener noreferrer"
-			aria-label="SE Webring"
-		>
-			<img class="webring-icon" src="/se-webring.svg" alt="" width="50" height="50" />
-		</a>
 	</div>
 	<div id="email-container">
 		<a id="email" href="mailto:dom_ritz@icloud.com" target="_blank">
@@ -91,13 +83,6 @@ import Email from './email.svelte';
 		display: block;
 	}
 
-	.webring-icon {
-		display: block;
-		width: 50px;
-		height: 50px;
-		object-fit: contain;
-	}
-
 	/* Mobile responsive */
 	@media (max-width: 767px) {
 		.social-links-container {
@@ -114,11 +99,6 @@ import Email from './email.svelte';
 		}
 
 		#links svg {
-			width: 40px;
-			height: 40px;
-		}
-
-		.webring-icon {
 			width: 40px;
 			height: 40px;
 		}
