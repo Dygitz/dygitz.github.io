@@ -8,8 +8,16 @@
 		<div class="about-ice">
 			<div class="about-content">
 				I'm a passionate software engineer with a focus on AI. I'm
-				currently a 3B Software Engineering student at the
-				University of Waterloo. The unknown piques my interest and
+				currently a 3B{" "}
+				<a
+					class="webring-link"
+					href="https://se-webring.xyz/"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Software Engineering student at the University of Waterloo
+				</a>.
+				The unknown piques my interest and
 				I'm always eager to learn new things. In my free time, I
 				keep up with the latest AI research, often reading papers on
 				arXiv. Outside of academics, I like cooking, traveling,
@@ -404,6 +412,19 @@
 		font-size: 1.1rem;
 		line-height: 1.6;
 		text-align: left;
+	}
+
+	.webring-link {
+		color: inherit;
+		text-decoration: underline;
+		text-decoration-style: dotted;
+		text-underline-offset: 0.2em;
+		transition: color 180ms ease;
+	}
+
+	.webring-link:hover,
+	.webring-link:focus-visible {
+		color: #6d18e2;
 	}
 
 	@media (max-width: 767px) {
