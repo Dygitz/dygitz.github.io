@@ -1,3 +1,6 @@
+<script context="module" lang="ts">
+  let galleryInstanceCount = 0;
+</script>
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
 
@@ -23,7 +26,10 @@
   let isInteracting = false;
   let isHovering = false;
   let isFocusedWithin = false;
+  let galleryRegion: HTMLElement | null = null;
   let orbitRegion: HTMLElement | null = null;
+
+  const activeCardId = `orbital-gallery-${++galleryInstanceCount}-active-card`;
 
   let wheelAccumulator = 0;
   let wheelLocked = false;
@@ -274,7 +280,7 @@
   function handleFocusOut(event: FocusEvent) {
     const nextTarget = event.relatedTarget as Node | null;
 
-    if (orbitRegion && nextTarget && orbitRegion.contains(nextTarget)) return;
+    if (galleryRegion && nextTarget && galleryRegion.contains(nextTarget)) return;
 
     isFocusedWithin = false;
   }
@@ -311,8 +317,6 @@
       orbitRegion.addEventListener("pointercancel", handlePointerCancel);
       orbitRegion.addEventListener("pointerenter", handlePointerEnter);
       orbitRegion.addEventListener("pointerleave", handlePointerLeave);
-      orbitRegion.addEventListener("focusin", handleFocusIn);
-      orbitRegion.addEventListener("focusout", handleFocusOut);
     }
 
     return () => {
@@ -330,8 +334,6 @@
         orbitRegion.removeEventListener("pointercancel", handlePointerCancel);
         orbitRegion.removeEventListener("pointerenter", handlePointerEnter);
         orbitRegion.removeEventListener("pointerleave", handlePointerLeave);
-        orbitRegion.removeEventListener("focusin", handleFocusIn);
-        orbitRegion.removeEventListener("focusout", handleFocusOut);
       }
 
       clearTimeout(wheelResetTimeout);
@@ -352,7 +354,14 @@
     <p class="orbital-gallery__empty-copy">No missions have been added yet.</p>
   </section>
 {:else}
-  <section class="orbital-gallery" aria-label="Orbital project gallery" on:keydown={handleKeydown}>
+  <section
+    class="orbital-gallery"
+    bind:this={galleryRegion}
+    aria-label="Orbital project gallery"
+    on:keydown={handleKeydown}
+    on:focusin={handleFocusIn}
+    on:focusout={handleFocusOut}
+  >
     <p class="orbital-gallery__sr-only" aria-live="polite" aria-atomic="true">{liveAnnouncement}</p>
 
     <div
@@ -377,6 +386,7 @@
       {#each projects as project, index}
         {@const geometry = getNodeGeometry(index)}
         {@const isActive = index === activeIndex}
+        {@const isHidden = geometry.slot === "hidden"}
         <button
           type="button"
           class:selected={isActive}
@@ -385,7 +395,11 @@
           style={getNodeStyle(index)}
           aria-label={`Select project: ${project.title}`}
           aria-pressed={isActive}
-          aria-controls="orbital-gallery-active-card"
+          aria-controls={activeCardId}
+          aria-hidden={isHidden ? "true" : undefined}
+          tabindex={isHidden ? -1 : undefined}
+          inert={isHidden}
+          disabled={isHidden}
           title={project.title}
           on:click={() => {
             selectProject(index);
@@ -398,7 +412,7 @@
       {/each}
     </div>
 
-    <div class="orbital-gallery__card" id="orbital-gallery-active-card">
+    <div class="orbital-gallery__card" id={activeCardId}>
       <ProjectCard project={activeProject} missionNumber={activeIndex + 1} missionTotal={projects.length} />
     </div>
   </section>
