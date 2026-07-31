@@ -243,16 +243,6 @@
         {#if item.tagline}
           <p class="asteroid__tagline">{item.tagline}</p>
         {/if}
-        {#if item.skills && item.skills.length > 0}
-          <ul class="asteroid__skills" aria-label="Key skills">
-            {#each item.skills.slice(0, 3) as skill}
-              <li>{skill}</li>
-            {/each}
-            {#if item.skills.length > 3}
-              <li>+{item.skills.length - 3} more</li>
-            {/if}
-          </ul>
-        {/if}
         <div class="asteroid__cta" aria-hidden="true">
           <span>View details</span>
           <svg class="asteroid__cta-icon" viewBox="0 0 16 16" role="presentation">
@@ -658,25 +648,6 @@
     letter-spacing: 0.04em;
   }
 
-  .asteroid__skills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin: 0.2rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .asteroid__skills li {
-    padding: 0.25rem 0.6rem;
-    border-radius: 999px;
-    background: rgba(109, 205, 255, 0.14);
-    color: rgba(215, 235, 255, 0.85);
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
   .asteroid__cta {
     display: inline-flex;
     align-items: center;
@@ -1022,10 +993,6 @@
 
     .asteroid__title {
       font-size: clamp(1.1rem, 4vw, 1.35rem);
-    }
-
-    .asteroid__skills li {
-      font-size: 0.7rem;
     }
 
     .experience-modal {
