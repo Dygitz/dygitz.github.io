@@ -1,15 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:global(*),
-:global(*::before),
-:global(*::after) {
+*,
+*::before,
+*::after {
 	box-sizing: border-box;
 }
 
-:global(html),
-:global(body) {
+html,
+body {
 	margin: 0;
 	padding: 0;
 	width: 100%;
