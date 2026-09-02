@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   getLottiePlaybackPolicy,
+  getMeteorScrollEnd,
   getMeteorVariant,
   getSpaceMotionProfile,
 } from "./spaceMotion";
@@ -69,5 +70,11 @@ describe("getMeteorVariant", () => {
     expect([0, 1, 2, 3, 4, 5].map(getMeteorVariant)).toEqual([
       1, 2, 3, 1, 2, 3,
     ]);
+  });
+});
+
+describe("getMeteorScrollEnd", () => {
+  it("finishes the reveal before the final meteor reaches the page floor", () => {
+    expect(getMeteorScrollEnd()).toBe("center 68%");
   });
 });
