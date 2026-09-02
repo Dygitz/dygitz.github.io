@@ -3,6 +3,17 @@ import LottieInteractive from "./LottieInteractive.svelte";
 import astronautAnimation from "../../astronaut.json";
 ---
 
+<script is:inline>
+	// Run before the hero can paint; deferred modules are too late on a cold load.
+	if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+		document.documentElement.dataset.heroEntrance = "pending";
+		// Keep the content readable if fonts or animation scripts never arrive.
+		window.setTimeout(() => {
+			delete document.documentElement.dataset.heroEntrance;
+		}, 4000);
+	}
+</script>
+
 <section
 	class="hero-section"
 	data-hero-section
@@ -41,6 +52,14 @@ import astronautAnimation from "../../astronaut.json";
 </section>
 
 <style>
+	@media (prefers-reduced-motion: no-preference) {
+		:global(html[data-hero-entrance="pending"]) .hero-copy,
+		:global(html[data-hero-entrance="pending"]) .astronaut-flight,
+		:global(html[data-hero-entrance="pending"]) .scroll-cue-anchor {
+			opacity: 0;
+		}
+	}
+
 	.hero-section {
 		isolation: isolate;
 		position: relative;
@@ -285,10 +304,7 @@ import astronautAnimation from "../../astronaut.json";
 
 		window.addEventListener("pagehide", onPageHide);
 
-		void document.fonts.ready.then(async () => {
-			if (!active) return;
-
-			const { gsap, SplitText } = await loadGsap();
+		void Promise.all([document.fonts.ready, loadGsap()]).then(([, { gsap, SplitText }]) => {
 			if (!active) return;
 
 			const reduce = window.matchMedia(
@@ -298,6 +314,10 @@ import astronautAnimation from "../../astronaut.json";
 				reducedMotion: reduce,
 				viewportWidth: window.innerWidth,
 			});
+			const animateEntrance = document.documentElement.dataset.heroEntrance === "pending";
+			// Restore the CSS end state and install GSAP's start state in the same
+			// task, so there is no visible frame between them.
+			delete document.documentElement.dataset.heroEntrance;
 
 			const context = gsap.context(() => {
 				// Scroll visibility has its own layer, independent of the entrance
@@ -317,7 +337,8 @@ import astronautAnimation from "../../astronaut.json";
 					},
 				);
 
-				if (profile.mode === "reduced") {
+				// Once the loading fallback has shown the text, never hide it again.
+				if (profile.mode === "reduced" || !animateEntrance) {
 					gsap.set(
 						"[data-hero-intro], [data-hero-name], [data-scroll-cue], [data-astronaut-flight]",
 						{
@@ -351,7 +372,8 @@ import astronautAnimation from "../../astronaut.json";
 						});
 
 						const timeline = gsap.timeline({
-							defaults: { ease: "power3.out" },
+							// Apply the hidden start values before releasing the first paint.
+							defaults: { ease: "power3.out", lazy: false },
 						});
 						timeline
 							.from("[data-hero-intro]", {
@@ -397,6 +419,7 @@ import astronautAnimation from "../../astronaut.json";
 				// Keep this one-time reveal out of SplitText's responsive rebuilds.
 				gsap.from("[data-scroll-cue]", {
 					autoAlpha: 0,
+					lazy: false,
 					duration: 0.4,
 					delay: 2.2,
 					ease: "power2.out",
@@ -418,6 +441,9 @@ import astronautAnimation from "../../astronaut.json";
 			}
 
 			cleanup = () => context.revert();
+		}).catch((error) => {
+			delete document.documentElement.dataset.heroEntrance;
+			console.error("Unable to initialize hero animation", error);
 		});
 	}
 </script>
