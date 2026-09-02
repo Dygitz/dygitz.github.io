@@ -15,6 +15,7 @@
     getOrbitGeometry,
     getOrbitNodeYRadius,
   } from "../lib/timelineGeometry";
+  import { getViewportGlowWindow } from "../lib/viewportGlow";
 
   export let items = [
     {
@@ -97,11 +98,37 @@
 
     const initializeTimeline = async () => {
       const { gsap, ScrollTrigger } = await loadGsap();
+      await document.fonts.ready;
 
       if (!active || !timelineRoot) return;
 
       const root = timelineRoot;
       const orbit = root.querySelector(".orbit-line");
+      const glowGradient = root.querySelector("[data-orbit-glow-gradient]");
+      let orbitTop = 0;
+      let orbitHeight = 0;
+      let viewportHeight = window.innerHeight;
+
+      const syncViewportGlow = (scrollTop = window.scrollY) => {
+        if (!glowGradient) return;
+        const { start, end } = getViewportGlowWindow({
+          scrollTop,
+          orbitTop,
+          orbitHeight,
+          viewportHeight,
+        });
+        glowGradient.setAttribute("y1", String(start));
+        glowGradient.setAttribute("y2", String(end));
+      };
+
+      const refreshViewportGlow = () => {
+        if (!orbit) return;
+        const bounds = orbit.getBoundingClientRect();
+        orbitTop = bounds.top + window.scrollY;
+        orbitHeight = bounds.height;
+        viewportHeight = window.innerHeight;
+        syncViewportGlow();
+      };
 
       const syncOrbitNodeAspect = () => {
         if (!orbit) return;
@@ -122,12 +149,24 @@
       if (orbit && typeof ResizeObserver !== "undefined") {
         orbitResizeObserver = new ResizeObserver(() => {
           if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
-          resizeFrame = window.requestAnimationFrame(syncOrbitNodeAspect);
+          resizeFrame = window.requestAnimationFrame(() => {
+            syncOrbitNodeAspect();
+            refreshViewportGlow();
+          });
         });
         orbitResizeObserver.observe(orbit);
       }
 
       animationContext = gsap.context(() => {
+        refreshViewportGlow();
+        ScrollTrigger.create({
+          trigger: root,
+          start: "top bottom",
+          end: "bottom top",
+          onUpdate: (self) => syncViewportGlow(self.scroll()),
+          onRefresh: refreshViewportGlow,
+        });
+
         motionMedia = gsap.matchMedia();
         motionMedia.add(
           {
@@ -141,14 +180,10 @@
               reducedMotion: reduceMotion === true,
               viewportWidth: window.innerWidth,
             });
-            const progress = root.querySelector("[data-timeline-progress]");
             const meteors = Array.from(root.querySelectorAll("[data-meteor]"));
             const nodes = Array.from(root.querySelectorAll("[data-orbit-node]"));
 
-            if (!progress) return;
-
             if (profile.mode === "reduced") {
-              gsap.set(progress, { strokeDashoffset: 0 });
               meteors.forEach((meteor) => {
                 const trail = meteor.querySelector("[data-meteor-trail]");
                 gsap.set(meteor, { autoAlpha: 1, clearProps: "transform" });
@@ -162,21 +197,6 @@
               });
               return;
             }
-
-            gsap.fromTo(
-              progress,
-              { strokeDashoffset: 1 },
-              {
-                strokeDashoffset: 0,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: root,
-                  start: "top 70%",
-                  end: "bottom 65%",
-                  scrub: profile.scrollScrub,
-                },
-              },
-            );
 
             meteors.forEach((meteor, index) => {
               const direction = meteor.dataset.side === "left" ? -1 : 1;
@@ -342,27 +362,41 @@
 
 <div class="cosmic-stage" bind:this={timelineRoot} data-experience-timeline>
   <svg class="orbit-line" viewBox="0 0 100 1000" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="experience-glow-fade" data-orbit-glow-gradient gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="0" y2="1000">
+        <stop offset="0" stop-color="white" stop-opacity="0" />
+        <stop offset="0.18" stop-color="white" stop-opacity="0.42" />
+        <stop offset="0.38" stop-color="white" stop-opacity="1" />
+        <stop offset="0.62" stop-color="white" stop-opacity="1" />
+        <stop offset="0.82" stop-color="white" stop-opacity="0.42" />
+        <stop offset="1" stop-color="white" stop-opacity="0" />
+      </linearGradient>
+      <mask id="experience-glow-mask" maskUnits="userSpaceOnUse" x="-100" y="-10" width="300" height="1020">
+        <rect x="-100" y="-10" width="300" height="1020" fill="url(#experience-glow-fade)" />
+      </mask>
+    </defs>
     <path
       class="orbit-line__track"
       d={orbitGeometry.path}
     />
-    <path
-      class="orbit-line__progress"
-      data-timeline-progress
-      pathLength="1"
-      d={orbitGeometry.path}
-    />
-    {#each orbitGeometry.nodes as node, index}
-      <ellipse
-        class="orbit-line__node"
-        data-orbit-node
-        data-index={index}
-        cx={node.x}
-        cy={node.y}
-        rx="4.6"
-        ry="2"
+    <g mask="url(#experience-glow-mask)">
+      <path
+        class="orbit-line__progress"
+        data-timeline-progress
+        d={orbitGeometry.path}
       />
-    {/each}
+      {#each orbitGeometry.nodes as node, index}
+        <ellipse
+          class="orbit-line__node"
+          data-orbit-node
+          data-index={index}
+          cx={node.x}
+          cy={node.y}
+          rx="4.6"
+          ry="2"
+        />
+      {/each}
+    </g>
   </svg>
 
   {#each cosmicItems as item (item.index)}
@@ -371,6 +405,7 @@
       data-meteor
       data-side={item.side}
       data-index={item.index}
+      data-variant={item.variant}
     >
       <picture
         class="meteor__trail"
@@ -390,7 +425,7 @@
           decoding="async"
         />
       </picture>
-      <span class="meteor__shell-drift" data-meteor-shell-drift aria-hidden="true">
+      <div class="meteor__body" data-meteor-shell-drift>
         <picture
           class="meteor__shell"
         >
@@ -408,23 +443,32 @@
             decoding="async"
           />
         </picture>
-      </span>
-      <div class="meteor__content">
-        <span class="meteor__date">{item.dateRange}</span>
-        <h3 class="meteor__title" id={`job-${item.index}-title`}>{item.title}</h3>
-        <p class="meteor__company" id={`job-${item.index}-company`}>{item.company}</p>
-        <button
-          class="meteor__cta"
-          type="button"
-          aria-haspopup="dialog"
-          aria-labelledby={`job-${item.index}-cta job-${item.index}-title job-${item.index}-company`}
-          on:click={(event) => openModal(item.index, event.currentTarget)}
-        >
-          <span id={`job-${item.index}-cta`}>View details</span>
-          <svg class="meteor__cta-icon" viewBox="0 0 16 16" role="presentation">
-            <path d="M3 8h8.586l-2.793-2.793L9.5 4.5 14 9l-4.5 4.5-0.707-0.707L11.586 9H3z"></path>
-          </svg>
-        </button>
+        <div class="meteor__content">
+          <span class="meteor__date">{item.card?.date ?? item.dateRange}</span>
+          <h3 class="meteor__title" id={`job-${item.index}-title`}>
+            <span class="meteor__copy-full">{item.card?.title ?? item.title}</span>
+            <span class="meteor__copy-compact">{item.card?.compactTitle ?? item.title}</span>
+          </h3>
+          <p class="meteor__company" id={`job-${item.index}-company`}>
+            <span class="meteor__copy-full">{item.card?.company ?? item.company}</span>
+            <span class="meteor__copy-compact">{item.card?.compactCompany ?? item.card?.company ?? item.company}</span>
+          </p>
+          <button
+            class="meteor__cta"
+            type="button"
+            aria-haspopup="dialog"
+            aria-labelledby={`job-${item.index}-cta job-${item.index}-title job-${item.index}-company`}
+            on:click={(event) => openModal(item.index, event.currentTarget)}
+          >
+            <span id={`job-${item.index}-cta`}>
+              <span class="meteor__copy-full">View details</span>
+              <span class="meteor__copy-compact">Details</span>
+            </span>
+            <svg class="meteor__cta-icon" viewBox="0 0 16 16" role="presentation">
+              <path d="M3 8h8.586l-2.793-2.793L9.5 4.5 14 9l-4.5 4.5-0.707-0.707L11.586 9H3z"></path>
+            </svg>
+          </button>
+        </div>
       </div>
     </article>
   {/each}
@@ -525,8 +569,6 @@
   .orbit-line__progress {
     stroke: var(--space-ice-cyan, #62dcff);
     stroke-width: 3;
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
     filter: drop-shadow(0 0 7px rgba(98, 220, 255, 0.85));
   }
 
@@ -542,7 +584,18 @@
   }
 
   .meteor {
+    /* Each row follows the flat face, in unmirrored artwork coordinates. */
+    --content-top: 36%;
+    --date-x: 31%;
+    --date-width: 43%;
+    --title-x: 26%;
+    --title-width: 52%;
+    --company-x: 31%;
+    --company-width: 43%;
+    --cta-x: 38%;
+    --cta-width: 33%;
     position: relative;
+    container-type: inline-size;
     width: min(47.5%, 540px);
     aspect-ratio: 1448 / 1086;
     margin-block: clamp(2.4rem, 6vw, 5.4rem);
@@ -555,7 +608,45 @@
   .meteor[data-side="left"] { margin-right: auto; }
   .meteor[data-side="right"] { margin-left: auto; }
 
-  .meteor__shell-drift {
+  .meteor[data-variant="2"] {
+    --content-top: 41%;
+    --date-x: 24%;
+    --date-width: 40%;
+    --title-x: 25%;
+    --title-width: 52%;
+    --company-x: 39%;
+    --company-width: 40%;
+    --cta-x: 50%;
+    --cta-width: 28%;
+  }
+
+  .meteor[data-variant="3"] {
+    --content-top: 31%;
+    --date-x: 38%;
+    --date-width: 40%;
+    --title-x: 34%;
+    --title-width: 50%;
+    --company-x: 39%;
+    --company-width: 42%;
+    --cta-x: 46%;
+    --cta-width: 30%;
+  }
+
+  .meteor[data-index="0"],
+  .meteor[data-index="6"] { --content-top: 40%; }
+  .meteor[data-index="3"] { --title-width: 55%; }
+
+  .meteor[data-index="0"],
+  .meteor[data-index="5"],
+  .meteor[data-index="6"] { --text-offset: 3%; }
+
+  .meteor[data-index="5"] {
+    --content-top: 34%;
+    --title-x: 32%;
+    --title-width: 54%;
+  }
+
+  .meteor__body {
     position: absolute;
     inset: 0;
     display: block;
@@ -614,12 +705,12 @@
 
   .meteor__content {
     position: absolute;
-    inset: 18% 16% 17% 18%;
+    top: var(--content-top);
+    left: 0;
+    width: 100%;
     display: flex;
     min-width: 0;
     flex-direction: column;
-    justify-content: center;
-    max-width: 42ch;
     color: var(--space-text, #f7fbff);
     text-shadow: 0 2px 12px rgba(4, 7, 25, 0.9);
     pointer-events: auto;
@@ -628,53 +719,93 @@
   }
 
   .meteor__date {
-    margin-bottom: 0.38rem;
+    --row-x: var(--date-x);
+    --row-width: var(--date-width);
+    margin-bottom: clamp(2px, 1.1cqw, 6px);
     color: var(--space-ice-cyan, #62dcff);
     font-family: "Sora", sans-serif;
-    font-size: clamp(0.62rem, 0.85vw, 0.76rem);
+    font-size: clamp(0.6875rem, 2.25cqw, 0.76rem);
     font-weight: 600;
-    letter-spacing: 0.11em;
-    line-height: 1.35;
+    letter-spacing: 0.075em;
+    line-height: 1.2;
     text-transform: uppercase;
   }
 
   .meteor__title {
-    margin: 0 0 0.2rem;
+    --row-x: var(--title-x);
+    --row-width: var(--title-width);
+    margin: 0 0 clamp(1px, 0.6cqw, 3px);
     color: var(--space-text, #f7fbff);
     font-family: "Sora", sans-serif;
-    font-size: clamp(1.05rem, 1.55vw, 1.38rem);
+    font-size: clamp(0.9rem, 4.1cqw, 1.38rem);
     font-weight: 700;
     letter-spacing: -0.025em;
     line-height: 1.12;
   }
 
   .meteor__company {
-    margin: 0 0 0.36rem;
+    --row-x: var(--company-x);
+    --row-width: var(--company-width);
+    margin: 0;
     color: var(--space-ice-cyan, #62dcff);
     font-family: "Sora", sans-serif;
-    font-size: clamp(0.82rem, 1.08vw, 0.98rem);
+    font-size: clamp(0.75rem, 2.9cqw, 0.98rem);
     font-style: italic;
     font-weight: 600;
-    line-height: 1.25;
+    line-height: 1.2;
+    white-space: pre-line;
   }
 
   .meteor__cta {
+    --row-x: var(--cta-x);
+    --row-width: var(--cta-width);
     display: inline-flex;
     align-items: center;
     align-self: flex-start;
     gap: 0.3rem;
-    margin-top: 0.48rem;
+    margin-top: clamp(4px, 1.8cqw, 10px);
     padding: 0;
     border: 0;
     background: transparent;
     color: var(--space-trail-highlight, #ffbd66);
     font-family: "Sora", sans-serif;
-    font-size: 0.68rem;
+    font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.13em;
     text-transform: uppercase;
     cursor: pointer;
+    line-height: 1.2;
     transition: color 180ms ease, transform 180ms ease;
+  }
+
+  .meteor__date,
+  .meteor__title,
+  .meteor__company,
+  .meteor__cta {
+    margin-left: calc(var(--row-x) + var(--text-offset, 0%));
+    width: var(--row-width);
+  }
+
+  .meteor__cta { width: max-content; }
+  .meteor__copy-compact { display: none; }
+
+  @media (min-width: 768px) {
+    .meteor[data-side="left"] .meteor__content > * {
+      margin-left: calc(100% - var(--row-x) - var(--row-width) + var(--text-offset, 0%));
+    }
+  }
+
+  @container (max-width: 460px) {
+    .meteor__copy-full { display: none; }
+    .meteor__copy-compact { display: inline; }
+    .meteor__date { margin-bottom: 2px; letter-spacing: 0.035em; }
+    .meteor__title { margin-bottom: 2px; }
+    .meteor__cta { margin-top: 4px; letter-spacing: 0.08em; }
+
+    @media (max-width: 767px) {
+      .meteor[data-variant="2"] .meteor__content { top: 36.5%; }
+      .meteor[data-variant="2"] .meteor__date { --row-x: 19.5%; }
+    }
   }
 
   .meteor__cta-icon { width: 0.82rem; height: 0.82rem; fill: currentColor; }
@@ -904,18 +1035,10 @@
 
     .meteor[data-side="right"] .meteor__trail-art { transform: none; }
 
-    .meteor__content { inset: 14% 9% 10% 12%; }
-    .meteor__date { margin-bottom: 0.3rem; font-size: clamp(0.6875rem, 2.6vw, 0.75rem); }
-    .meteor__title { font-size: clamp(1rem, 4.2vw, 1.18rem); }
-    .meteor__company { margin-bottom: 0.3rem; font-size: clamp(0.75rem, 3.2vw, 0.88rem); }
-
-    .meteor__cta { margin-top: 0.35rem; font-size: clamp(0.6875rem, 2.6vw, 0.75rem); }
     .experience-modal { padding: 1.4rem; max-height: 90vh; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .orbit-line__progress { stroke-dashoffset: 0; }
-
     .meteor {
       opacity: 1 !important;
       visibility: visible !important;
@@ -923,7 +1046,7 @@
 
     .meteor,
     .orbit-line__node,
-    .meteor__shell-drift,
+    .meteor__body,
     .meteor__trail {
       transform: none !important;
       will-change: auto;

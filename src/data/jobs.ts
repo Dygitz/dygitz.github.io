@@ -2,6 +2,13 @@ export interface Job {
   dateRange: string;
   title: string;
   company: string;
+  card?: {
+    date: string;
+    title?: string;
+    compactTitle: string;
+    company?: string;
+    compactCompany?: string;
+  };
   description?: string | string[];
   location?: string;
   tagline?: string;
@@ -13,6 +20,11 @@ export const jobs: Job[] = [
     dateRange: "May 2026 - Aug 2026 · 4 mos",
     title: "Software Engineer Intern (Post Trade)",
     company: "BitGo",
+    card: {
+      date: "May–Aug 2026",
+      title: "Software Engineer Intern",
+      compactTitle: "Engineering Intern",
+    },
     location: "New York, New York, United States",
     skills: ["Go", "AWS RDS/DMS", "Grafana", "Kafka", "TypeScript"],
     description: [
@@ -25,6 +37,7 @@ export const jobs: Job[] = [
     dateRange: "Sep 2025 - Dec 2025 · 4 mos",
     title: "Software Engineer Intern",
     company: "Super.com",
+    card: { date: "Sep–Dec 2025", compactTitle: "Engineering Intern" },
     location: "Remote",
     tagline: "Infrastructure + DevOps 🔧",
     skills: ["Kubernetes", "Amazon Web Services (AWS)", "Datadog"],
@@ -38,6 +51,12 @@ export const jobs: Job[] = [
     dateRange: "Dec 2024 - Apr 2025 · 5 mos",
     title: "Fullstack Software Engineering Intern",
     company: "Hamming AI (YC S24)",
+    card: {
+      date: "Dec ’24–Apr ’25",
+      title: "Fullstack Engineering Intern",
+      compactTitle: "Fullstack Intern",
+      company: "Hamming AI",
+    },
     location: "San Francisco, California, United States",
     tagline: "Fullstack 🚀 YC S24",
     skills: ["Next.js", "PostgreSQL", "Temporal", "LiveKit", "tRPC", "Datadog"],
@@ -52,6 +71,7 @@ export const jobs: Job[] = [
     dateRange: "Feb 2024 - Oct 2024 · 9 mos",
     title: "Autonomous Software Developer",
     company: "WATonomous",
+    card: { date: "Feb–Oct 2024", compactTitle: "Autonomy Dev." },
     location: "Waterloo, Ontario, Canada · Hybrid",
     tagline: "Machine Learning 🚙",
     skills: ["ROS2", "Docker", "PyTorch", "C++", "Python (Programming Language)"],
@@ -63,6 +83,13 @@ export const jobs: Job[] = [
     dateRange: "May 2024 - Aug 2024 · 4 mos",
     title: "Software Engineering Intern",
     company: "Carnegie Mellon University CyLab Biometrics Center",
+    card: {
+      date: "May–Aug 2024",
+      title: "Software Eng. Intern",
+      compactTitle: "Engineering Intern",
+      company: "Carnegie Mellon\nCyLab Biometrics",
+      compactCompany: "CMU · CyLab",
+    },
     location: "Pittsburgh, Pennsylvania, United States · On-site",
     tagline: "Robotics + Computer Vision 🤖",
     skills: [
@@ -87,6 +114,7 @@ export const jobs: Job[] = [
     dateRange: "May 2023 - Jun 2023 · 2 mos",
     title: "Data Science Intern",
     company: "MBR Technology",
+    card: { date: "May–Jun 2023", compactTitle: "Data Science Intern" },
     location: "Remote",
     tagline: "Machine Learning 🧠",
     skills: ["Pandas", "Jupyter Notebook", "NumPy", "PyTorch", "Python (Programming Language)", "Git"],
@@ -98,6 +126,7 @@ export const jobs: Job[] = [
     dateRange: "Jun 2022 - Aug 2022 · 3 mos",
     title: "Software Engineer Intern",
     company: "Palturai",
+    card: { date: "Jun–Aug 2022", compactTitle: "Engineering Intern" },
     location: "Paoli, Pennsylvania, United States · Hybrid",
     tagline: "Fullstack 🔗",
     skills: [
@@ -117,6 +146,7 @@ export const jobs: Job[] = [
     dateRange: "Jun 2021 - Aug 2021 · 3 mos",
     title: "Software Engineer Intern",
     company: "Palturai",
+    card: { date: "Jun–Aug 2021", compactTitle: "Engineering Intern" },
     location: "Paoli, Pennsylvania",
     tagline: "Backend ⚙️",
     skills: ["Java (Programming Language)", "REST APIs"],
