@@ -2,12 +2,16 @@
 
 ---
 
-<div id="stars-container"></div>
-<div id="cursor-blackhole" class="cursor-blackhole"></div>
+<div data-star-field-root>
+	<div id="stars-container"></div>
+	<div id="cursor-blackhole" class="cursor-blackhole"></div>
+</div>
 
 <style>
 	.cursor-blackhole {
 		position: fixed;
+		top: 0;
+		left: 0;
 		width: 80px;
 		height: 80px;
 		border-radius: 50%;
@@ -27,6 +31,7 @@
 		mix-blend-mode: multiply;
 		filter: blur(2px);
 		display: none;
+		will-change: transform;
 	}
 
 	@media (min-width: 768px) {
@@ -55,26 +60,81 @@
 		box-sizing: border-box;
 		z-index: 1;
 	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.cursor-blackhole {
+			display: none !important;
+			will-change: auto;
+		}
+
+		:global(body) {
+			cursor: auto !important;
+		}
+	}
 </style>
 
 <script>
-	import { Application, Container, Graphics, Ticker } from 'pixi.js';
+	import { Application, Container, Graphics } from "pixi.js";
+	import { loadGsap } from "../lib/gsapClient";
 
-	window.addEventListener("DOMContentLoaded", async () => {
+	const root = document.querySelector<HTMLElement>("[data-star-field-root]");
+
+	let active = true;
+	let started = false;
+	let tornDown = false;
+	let app;
+	let appInitialized = false;
+	let meteorInterval = 0;
+	let context;
+	let cursorXTo;
+	let cursorYTo;
+	let removePointerListener = () => {};
+	let removeResizeListener = () => {};
+
+	const destroyApplication = () => {
+		if (!app || !appInitialized) return;
+
+		app.destroy({ removeView: true }, { children: true });
+		app = undefined;
+		appInitialized = false;
+	};
+
+	const teardown = () => {
+		if (tornDown) return;
+		tornDown = true;
+		active = false;
+
+		document.removeEventListener("DOMContentLoaded", start);
+		window.removeEventListener("pagehide", teardown);
+		removePointerListener();
+		removeResizeListener();
+		if (meteorInterval) window.clearInterval(meteorInterval);
+		cursorXTo?.tween.kill();
+		cursorYTo?.tween.kill();
+		context?.revert();
+		destroyApplication();
+	};
+
+	const initialize = async () => {
+		const starFieldRoot = root;
+		if (!starFieldRoot) return;
+
 		const isMobile = window.innerWidth <= 767;
-		const container = document.getElementById("stars-container");
+		const reduceMotion = window.matchMedia(
+			"(prefers-reduced-motion: reduce)",
+		).matches;
+		const container = starFieldRoot.querySelector<HTMLElement>("#stars-container");
 		if (!container) {
 			console.error('Container with id "stars-container" not found');
 			return;
 		}
 
 		// Create PixiJS application
-		const app = new Application();
+		app = new Application();
 		await app.init({
 			width: window.innerWidth,
 			height: window.innerHeight,
 			backgroundAlpha: 0,
-			resizeTo: window,
 
 			// Quality knobs:
 			antialias: true,                  // smoother vector edges
@@ -82,9 +142,22 @@
 			resolution: Math.min(devicePixelRatio, 2), // cap at 2 to avoid huge textures
 			powerPreference: 'high-performance'
 		});
+		appInitialized = true;
+
+		if (!active) {
+			destroyApplication();
+			return;
+		}
 
 		// Add the application to the DOM
 		container.appendChild(app.canvas);
+
+		const onResize = () => {
+			app?.renderer.resize(window.innerWidth, window.innerHeight);
+			if (reduceMotion) app?.render();
+		};
+		window.addEventListener("resize", onResize);
+		removeResizeListener = () => window.removeEventListener("resize", onResize);
 
 		// Create containers for different layers
 		const starsContainer = new Container();
@@ -99,14 +172,14 @@
 		// Create star graphics texture for performance
 		function createStarGraphics(size, opacity) {
 			const star = new Graphics();
-			
+
 			// Create glow effect using multiple circles
 			star.circle(0, 0, size * 1.5);
 			star.fill({ color: 0xffffff, alpha: opacity * 0.1 });
-			
+
 			star.circle(0, 0, size);
 			star.fill({ color: 0xffffff, alpha: opacity * 0.6 });
-			
+
 			star.circle(0, 0, size * 0.5);
 			star.fill({ color: 0xffffff, alpha: opacity });
 
@@ -156,10 +229,10 @@
 		// Create meteor graphics with trail effect
 		function createMeteorGraphics(meteor) {
 			const meteorGraphics = new Graphics();
-			
+
 			// Clear previous drawings
 			meteorGraphics.clear();
-			
+
 			// Draw trail as thin line segments with exponential fade
 			const maxTrailLength = meteor.size * meteor.opacity;
 			for (let j = 1; j < maxTrailLength; j++) {
@@ -174,19 +247,25 @@
 					meteorGraphics.stroke({ width: 2, color: 0xffffff, alpha: tailOpacity, cap: 'round' });
 				}
 			}
-			
+
 			// Draw a very small head as a dot
 			meteorGraphics.circle(0, 0, 0.6);
 			meteorGraphics.fill({
 				color: 0xffffff,
 				alpha: Math.max(0, meteor.opacity)
 			});
-			
+
 			return meteorGraphics;
 		}
 
+		if (reduceMotion) {
+			app.render();
+			app.stop();
+			return;
+		}
+
 		// Add meteors periodically
-		setInterval(() => {
+		meteorInterval = window.setInterval(() => {
 			if (meteorArray.length >= 3) {
 				const oldMeteor = meteorArray.shift();
 				meteorsContainer.removeChild(oldMeteor.graphics);
@@ -290,24 +369,24 @@
 			});
 		} else {
 			// Desktop with black hole effects
-			let targetX = 0;
-			let targetY = 0;
 			let blackholeX = 0;
 			let blackholeY = 0;
-			let currentX = 0;
-			let currentY = 0;
 			const INFLUENCE_RADIUS = 150;
 			const GRAVITY_STRENGTH = 0.2;
 			const RECOVERY_RATE = 0.02;
 			const BLACK_HOLE_CORE_RADIUS = 20;
+			const blackhole =
+				starFieldRoot.querySelector<HTMLElement>("#cursor-blackhole");
 
-			// Mouse movement handler
-			document.addEventListener("mousemove", (e) => {
-				targetX = e.clientX;
-				targetY = e.clientY;
-				blackholeX = e.clientX;
-				blackholeY = e.clientY;
-			});
+			const onPointerMove = (event: PointerEvent) => {
+				blackholeX = event.clientX;
+				blackholeY = event.clientY;
+				cursorXTo?.(event.clientX);
+				cursorYTo?.(event.clientY);
+			};
+			document.addEventListener("pointermove", onPointerMove);
+			removePointerListener = () =>
+				document.removeEventListener("pointermove", onPointerMove);
 
 			app.ticker.add(() => {
 				const now = Date.now();
@@ -456,26 +535,50 @@
 				}
 			});
 
-			// Black hole cursor animation
-			const blackhole = document.getElementById("cursor-blackhole");
 			if (blackhole) {
-				function updatePosition() {
-					const ease = 0.15;
-					currentX += (targetX - currentX) * ease;
-					currentY += (targetY - currentY) * ease;
+				const { gsap } = await loadGsap();
+				if (!active) return;
 
-					blackhole.style.left = `${currentX}px`;
-					blackhole.style.top = `${currentY}px`;
+				context = gsap.context(() => {
+					gsap.set(blackhole, { xPercent: -50, yPercent: -50 });
+					cursorXTo = gsap.quickTo(blackhole, "x", {
+						duration: 0.35,
+						ease: "power3.out",
+					});
+					cursorYTo = gsap.quickTo(blackhole, "y", {
+						duration: 0.35,
+						ease: "power3.out",
+					});
+				}, starFieldRoot);
 
-					requestAnimationFrame(updatePosition);
+				if (!active) {
+					cursorXTo?.tween.kill();
+					cursorYTo?.tween.kill();
+					context.revert();
+					return;
 				}
-				updatePosition();
+
+				cursorXTo(blackholeX);
+				cursorYTo(blackholeY);
 			}
 		}
+	};
 
-		// Handle window resize
-		window.addEventListener('resize', () => {
-			app.renderer.resize(window.innerWidth, window.innerHeight);
+	function start() {
+		if (started || !active) return;
+		started = true;
+		void initialize().catch((error) => {
+			if (!active) return;
+			console.error("Unable to initialize the star field", error);
+			teardown();
+			document.body.classList.add("cursor-visible");
 		});
-	});
+	}
+
+	window.addEventListener("pagehide", teardown, { once: true });
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", start, { once: true });
+	} else {
+		start();
+	}
 </script>
