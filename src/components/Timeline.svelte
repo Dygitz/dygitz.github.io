@@ -2,6 +2,11 @@
   import { onDestroy, onMount, tick } from "svelte";
   import { loadGsap } from "../lib/gsapClient";
   import {
+    closeModalDialog,
+    restoreDialogTrigger,
+    showModalDialog,
+  } from "../lib/modalDialog";
+  import {
     getMeteorScrollEnd,
     getMeteorVariant,
     getSpaceMotionProfile,
@@ -49,6 +54,7 @@
   let cosmicItems = [];
   let activeIndex = null;
   let previouslyFocused = null;
+  let modalDialog;
   let modalCloseButton;
   let timelineRoot;
 
@@ -66,7 +72,7 @@
     if (activeItem) {
       document.body.classList.add("modal-open");
       tick().then(() => {
-        if (modalCloseButton) {
+        if (activeItem && showModalDialog(modalDialog) && modalCloseButton) {
           modalCloseButton.focus();
         }
       });
@@ -236,6 +242,7 @@
 
   onDestroy(() => {
     if (typeof document !== "undefined") {
+      closeModalDialog(modalDialog);
       document.body.classList.remove("modal-open");
     }
   });
@@ -250,21 +257,18 @@
   }
 
   function closeModal() {
-    activeIndex = null;
-    if (typeof HTMLElement !== "undefined" && previouslyFocused instanceof HTMLElement) {
-      previouslyFocused.focus();
-    }
+    const trigger = previouslyFocused;
     previouslyFocused = null;
+    closeModalDialog(modalDialog);
+    activeIndex = null;
+    restoreDialogTrigger(trigger);
   }
 
-  function handleWindowKeydown(event) {
-    if (event.key === "Escape" && activeItem) {
-      closeModal();
-    }
+  function handleDialogCancel(event) {
+    event.preventDefault();
+    closeModal();
   }
 </script>
-
-<svelte:window on:keydown={handleWindowKeydown} />
 
 <div class="cosmic-stage" bind:this={timelineRoot} data-experience-timeline>
   <svg class="orbit-line" viewBox="0 0 100 1000" preserveAspectRatio="none" aria-hidden="true">
@@ -288,15 +292,6 @@
       data-index={item.index}
       style={`--node:${(item.index / Math.max(cosmicItems.length - 1, 1)) * 100}%`}
     >
-      <button
-        class="meteor__trigger"
-        type="button"
-        aria-haspopup="dialog"
-        aria-labelledby={`job-${item.index}-title job-${item.index}-company`}
-        on:click={(event) => openModal(item.index, event.currentTarget)}
-      >
-        <span class="sr-only">View details</span>
-      </button>
       <img
         class="meteor__trail"
         data-meteor-trail
@@ -334,32 +329,34 @@
             {/if}
           </ul>
         {/if}
-        <div class="meteor__cta" aria-hidden="true">
-          <span>View details</span>
+        <button
+          class="meteor__cta"
+          type="button"
+          aria-haspopup="dialog"
+          aria-labelledby={`job-${item.index}-cta job-${item.index}-title job-${item.index}-company`}
+          on:click={(event) => openModal(item.index, event.currentTarget)}
+        >
+          <span id={`job-${item.index}-cta`}>View details</span>
           <svg class="meteor__cta-icon" viewBox="0 0 16 16" role="presentation">
             <path d="M3 8h8.586l-2.793-2.793L9.5 4.5 14 9l-4.5 4.5-0.707-0.707L11.586 9H3z"></path>
           </svg>
-        </div>
+        </button>
       </div>
     </article>
   {/each}
 </div>
 
 {#if activeItem}
-  <div class="experience-modal-overlay" role="presentation">
-    <button
-      class="experience-modal-overlay__backdrop"
-      type="button"
-      tabindex="-1"
-      aria-hidden="true"
-      on:click={closeModal}
-    ></button>
+  <dialog
+    class="experience-modal-overlay"
+    aria-labelledby={`modal-job-${activeItem.index}-title`}
+    bind:this={modalDialog}
+    on:cancel={handleDialogCancel}
+    on:click|self={closeModal}
+  >
     <div
       class="experience-modal"
       id="experience-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={`modal-job-${activeItem.index}-title`}
     >
       <button
         class="modal__close"
@@ -403,7 +400,7 @@
         </div>
       {/if}
     </div>
-  </div>
+  </dialog>
 {/if}
 
 <style>
@@ -481,23 +478,6 @@
   .meteor[data-side="left"]::before { right: -0.18rem; }
   .meteor[data-side="right"]::before { left: -0.18rem; }
 
-  .meteor__trigger {
-    position: absolute;
-    inset: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 44% 48% 46% 42%;
-    background: transparent;
-    cursor: pointer;
-    z-index: 5;
-  }
-
-  .meteor__trigger:focus-visible {
-    outline: 3px solid var(--space-ice-cyan, #62dcff);
-    outline-offset: 5px;
-    box-shadow: 0 0 0 9px rgba(98, 220, 255, 0.16);
-  }
-
   .meteor__shell-drift {
     position: absolute;
     inset: 0;
@@ -551,7 +531,8 @@
     max-width: 42ch;
     color: var(--space-text, #f7fbff);
     text-shadow: 0 2px 12px rgba(4, 7, 25, 0.9);
-    pointer-events: none;
+    pointer-events: auto;
+    user-select: text;
     z-index: 2;
   }
 
@@ -623,45 +604,56 @@
     align-self: flex-start;
     gap: 0.3rem;
     margin-top: 0.48rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
     color: var(--space-trail-highlight, #ffbd66);
     font-family: "Sora", sans-serif;
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.13em;
     text-transform: uppercase;
+    cursor: pointer;
     transition: color 180ms ease, transform 180ms ease;
   }
 
   .meteor__cta-icon { width: 0.82rem; height: 0.82rem; fill: currentColor; }
 
   .meteor:hover .meteor__cta,
-  .meteor__trigger:focus-visible ~ .meteor__content .meteor__cta {
+  .meteor__cta:focus-visible {
     color: #fff4d8;
     transform: translateX(4px);
+  }
+
+  .meteor__cta:focus-visible {
+    outline: 2px solid var(--space-ice-cyan, #62dcff);
+    outline-offset: 4px;
+    border-radius: 2px;
+    box-shadow: 0 0 0 6px rgba(98, 220, 255, 0.16);
   }
 
   .experience-modal-overlay {
     position: fixed;
     inset: 0;
-    display: flex;
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    box-sizing: border-box;
+    margin: 0;
     align-items: center;
     justify-content: center;
     padding: clamp(1rem, 4vw, 3rem);
+    border: 0;
     background: rgba(4, 7, 25, 0.84);
     backdrop-filter: blur(14px);
     animation: overlay-fade 180ms ease-out;
-    z-index: 30;
+    overflow-y: auto;
   }
 
-  .experience-modal-overlay__backdrop {
-    position: absolute;
-    inset: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    z-index: 0;
-  }
+  .experience-modal-overlay[open] { display: grid; }
+  .experience-modal-overlay:not([open]) { display: none; }
+  .experience-modal-overlay::backdrop { background: transparent; }
 
   .experience-modal {
     position: relative;
@@ -675,7 +667,6 @@
     color: var(--space-text, #f7fbff);
     clip-path: polygon(0 18px, 18px 0, calc(100% - 30px) 0, 100% 30px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 26px 100%, 0 calc(100% - 26px));
     animation: modal-settle 220ms ease-out;
-    z-index: 1;
   }
 
   .modal__close {
@@ -852,21 +843,16 @@
     }
 
     .meteor__content { inset: 12% 9% 9% 12%; }
-    .meteor__date { margin-bottom: 0.25rem; font-size: clamp(0.52rem, 2.2vw, 0.66rem); }
-    .meteor__title { font-size: clamp(0.9rem, 4vw, 1.14rem); }
-    .meteor__company { margin-bottom: 0.22rem; font-size: clamp(0.68rem, 3vw, 0.86rem); }
+    .meteor__date { margin-bottom: 0.3rem; font-size: clamp(0.6875rem, 2.6vw, 0.75rem); }
+    .meteor__title { font-size: clamp(1rem, 4.2vw, 1.18rem); }
+    .meteor__company { margin-bottom: 0.3rem; font-size: clamp(0.75rem, 3.2vw, 0.88rem); }
 
     .meteor__location,
-    .meteor__tagline { margin-bottom: 0.18rem; font-size: clamp(0.57rem, 2.35vw, 0.7rem); }
+    .meteor__tagline,
+    .meteor__skills { display: none; }
 
-    .meteor__skills { gap: 0.2rem; margin-top: 0.1rem; }
-    .meteor__skills li { padding: 0.13rem 0.28rem; font-size: clamp(0.48rem, 2vw, 0.58rem); }
-    .meteor__cta { margin-top: 0.3rem; font-size: 0.53rem; }
+    .meteor__cta { margin-top: 0.35rem; font-size: clamp(0.6875rem, 2.6vw, 0.75rem); }
     .experience-modal { padding: 1.4rem; max-height: 90vh; }
-  }
-
-  @media (max-width: 430px) {
-    .meteor__skills li:nth-child(n + 4) { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
