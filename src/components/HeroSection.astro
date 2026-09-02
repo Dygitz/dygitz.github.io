@@ -16,7 +16,7 @@ import astronautAnimation from "../../astronaut.json";
 		<p class="hero-intro" data-hero-intro>Hi, I'm</p>
 		<div class="name-shell">
 			<h1 id="hero-name" data-hero-name>Dominik Ritz</h1>
-			<span class="name-shine" data-name-shine aria-hidden="true"></span>
+			<span class="name-shine" data-name-shine aria-hidden="true">Dominik Ritz</span>
 		</div>
 	</div>
 
@@ -63,6 +63,20 @@ import astronautAnimation from "../../astronaut.json";
 		background-position: center;
 		background-repeat: no-repeat;
 		background-size: cover;
+		-webkit-mask-image: linear-gradient(
+			to bottom,
+			#000 0%,
+			#000 72%,
+			rgba(0, 0, 0, 0.88) 82%,
+			transparent 100%
+		);
+		mask-image: linear-gradient(
+			to bottom,
+			#000 0%,
+			#000 72%,
+			rgba(0, 0, 0, 0.88) 82%,
+			transparent 100%
+		);
 		content: "";
 		opacity: 0.34;
 		pointer-events: none;
@@ -93,14 +107,28 @@ import astronautAnimation from "../../astronaut.json";
 	.name-shell {
 		position: relative;
 		display: inline-grid;
-		overflow: hidden;
+		max-width: 100%;
+		padding-inline: 0.075em;
 		place-items: center;
+	}
+
+	#hero-name,
+	.name-shine {
+		grid-area: 1 / 1;
+		margin: 0;
+		font-family: "Sora", sans-serif;
+		font-size: clamp(4rem, 9.2vw, 8.4rem);
+		font-kerning: none;
+		font-weight: 700;
+		letter-spacing: -0.065em;
+		line-height: 0.98;
+		text-align: center;
+		white-space: nowrap;
 	}
 
 	#hero-name {
 		position: relative;
 		z-index: 1;
-		margin: 0;
 		background: linear-gradient(
 			98deg,
 			var(--space-violet, #8b5cf6) 4%,
@@ -109,36 +137,28 @@ import astronautAnimation from "../../astronaut.json";
 		);
 		background-clip: text;
 		color: transparent;
-		font-family: "Sora", sans-serif;
-		font-size: clamp(4rem, 9.2vw, 8.4rem);
-		font-kerning: none;
-		font-weight: 700;
-		letter-spacing: -0.065em;
-		line-height: 0.98;
 		text-rendering: optimizeSpeed;
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
-		white-space: nowrap;
 	}
 
 	.name-shine {
-		position: absolute;
-		top: -12%;
-		bottom: -12%;
-		left: 4%;
+		position: relative;
 		z-index: 2;
-		width: 40%;
 		background: linear-gradient(
-			90deg,
-			transparent,
-			rgba(247, 251, 255, 0.72),
-			transparent
-		);
-		filter: blur(2px);
-		mix-blend-mode: screen;
+			108deg,
+			transparent 24%,
+			rgba(247, 251, 255, 0.18) 39%,
+			rgba(247, 251, 255, 0.92) 50%,
+			rgba(98, 220, 255, 0.22) 61%,
+			transparent 76%
+		) -150% 0 / 48% 100% no-repeat;
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
 		pointer-events: none;
-		transform: skewX(-16deg);
-		will-change: transform;
+		-webkit-text-fill-color: transparent;
+		will-change: background-position;
 	}
 
 	.astronaut-flight {
@@ -197,7 +217,8 @@ import astronautAnimation from "../../astronaut.json";
 			font-size: clamp(1.75rem, 8vw, 2.5rem);
 		}
 
-		#hero-name {
+		#hero-name,
+		.name-shine {
 			max-width: 8ch;
 			font-size: clamp(3.8rem, 17vw, 5.2rem);
 			line-height: 0.94;
@@ -275,8 +296,10 @@ import astronautAnimation from "../../astronaut.json";
 				}
 
 				SplitText.create("[data-hero-name]", {
-					type: "chars",
-					mask: "chars",
+					type: "chars,lines",
+					mask: "lines",
+					charsClass: "hero-char",
+					linesClass: "hero-line",
 					smartWrap: true,
 					autoSplit: true,
 					onSplit(self) {
@@ -312,9 +335,9 @@ import astronautAnimation from "../../astronaut.json";
 							)
 							.fromTo(
 								"[data-name-shine]",
-								{ xPercent: -140 },
+								{ backgroundPositionX: "-150%" },
 								{
-									xPercent: 240,
+									backgroundPositionX: "250%",
 									duration: 0.9,
 									ease: "power2.inOut",
 								},
