@@ -2,6 +2,54 @@
 
 Date: 2026-09-02
 
+## Final approved polish and PR verification
+
+The user approved the final composition after the iterations below. This section
+supersedes earlier measurements in the historical capture notes.
+
+- About ice is back to `min(94vw, 860px)`. The complete native paragraph flows
+  between shape-outside contours traced from the flat face. A resize/font-load
+  safeguard adds height for enlarged text without reducing the font size.
+- About shimmer uses the illustration's alpha mask, including the matching
+  portrait rotation on small screens. Thirty sampled sweep states across six
+  widths showed zero pixels leaking outside the artwork.
+- Meteor summaries show date, title, company, and the details action only.
+  Per-shape row offsets keep all text inside the flat surfaces. BitGo and the
+  June–August 2022 Palturai entry are slightly lower; the artwork is unchanged.
+- The continuous timeline light follows the viewport and fades at both screen
+  edges, including the gaps between jobs and reverse scrolling. Nodes use the
+  same path geometry, and both sides' trails stay behind their shells.
+- The raised hero scroll cue fades with scrolling and returns when scrolling
+  back to the top. Its fade wrapper is independent of its entrance/bob motion.
+- The black-hole cursor stays above the stars but below illustrations and text.
+  About no longer toggles it off on section entry or keyboard focus; modal,
+  mobile, and reduced-motion suppression remain intentional.
+
+Final checks on the approved worktree:
+
+- Production build, TypeScript check, and all 23 tests in five Vitest files pass.
+  The only build warning is the existing direct-eval warning in Lottie.
+- About text fits with at least 6px flat-face clearance at 12 widths from 320 to
+  1920px. Five additional 200%-text checks pass; resizing and restoring normal
+  text reset the ice height correctly.
+- Final Palturai adjustment passes 48 meteor layout checks across six desktop
+  and mobile widths, with no text overlap or horizontal overflow.
+- Final timeline QA passes 44 forward/reverse scroll samples, viewport resize
+  checks, and 32 details-dialog interactions. The scroll cue's intermediate
+  fades, return to the top, and resize behavior pass in four viewport/motion
+  configurations.
+- Cursor checks pass on desktop, mobile, and initial reduced-motion loads,
+  including About traversal in both directions and modal dismissal.
+- Shimmer entrance, stationary mask alignment, tilt/reset, link focus, and
+  initial reduced-motion rendering pass on desktop and mobile.
+- The final independent source review found no critical or important actionable
+  regressions. Changing the OS motion preference while the page is already
+  loaded remains a possible follow-up; initial reduced-motion loads are tested.
+
+Screenshot artifacts stay outside the repository. Before/after images for the
+PR compare current production with the locally built approved branch; both use
+a 1440 × 1000 viewport. The remaining sections document earlier review rounds.
+
 ## Source truth
 
 The approved images are style boards rather than literal page-layout templates. The implementation was evaluated against their selected visual language: professional 2D/cartoon illustration, faceted low-poly surfaces, deep navy space, violet/cyan highlights, restrained orange meteor trails, crisp white typography, and clear hierarchy.

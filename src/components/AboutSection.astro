@@ -24,22 +24,32 @@
 				decoding="async"
 			/>
 		</picture>
-		<span class="ice-shine" data-ice-shine aria-hidden="true"></span>
+		<div class="ice-shine-viewport" aria-hidden="true">
+			<div class="ice-shine-mask">
+				<div class="ice-shine-plane">
+					<span class="ice-shine" data-ice-shine></span>
+				</div>
+			</div>
+		</div>
 		<div class="about-content">
-			I'm a passionate software engineer with a focus on AI. I'm currently a
-			3B{" "}<a
-				class="webring-link"
-				href="https://se-webring.xyz/"
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				Software Engineering student at the University of Waterloo
-			</a>.
-			The unknown piques my interest and I'm always eager to learn new things. In
-			my free time, I keep up with the latest AI research, often reading papers
-			on arXiv. Outside of academics, I like cooking, traveling, working out at
-			the gym, and playing ultimate frisbee. I'm always looking for opportunities
-			to learn and grow, so feel free to reach out—I'm happy to connect!
+			<span class="ice-flow-edge ice-flow-edge--left" aria-hidden="true"></span>
+			<span class="ice-flow-edge ice-flow-edge--right" aria-hidden="true"></span>
+			<p class="about-copy">
+				I'm a passionate software engineer with a focus on AI. I'm currently a
+				3B{" "}<a
+					class="webring-link"
+					href="https://se-webring.xyz/"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Software Engineering student at the University of Waterloo
+				</a>.
+				The unknown piques my interest and I'm always eager to learn new things. In
+				my free time, I keep up with the latest AI research, often reading papers
+				on arXiv. Outside of academics, I like cooking, traveling, working out at
+				the gym, and playing ultimate frisbee. I'm always looking for opportunities
+				to learn and grow, so feel free to reach out—I'm happy to connect!
+			</p>
 		</div>
 	</div>
 </section>
@@ -83,24 +93,18 @@
 
 	.about-card {
 		position: relative;
-		display: grid;
+		display: block;
 		width: min(94vw, 860px);
-		aspect-ratio: 3 / 2;
+		container-type: inline-size;
 		overflow: hidden;
-		place-items: center;
 		transform-style: preserve-3d;
 		transform-origin: 50% 50%;
 		will-change: transform, opacity;
 	}
 
-	.ice-art-picture,
-	.ice-shine,
-	.about-content {
-		grid-area: 1 / 1;
-	}
-
 	.ice-art-picture {
-		position: relative;
+		position: absolute;
+		inset: 0;
 		z-index: 0;
 		display: block;
 		width: 100%;
@@ -114,6 +118,38 @@
 		width: 100%;
 		height: 100%;
 		object-fit: fill;
+	}
+
+	.ice-shine-viewport {
+		position: absolute;
+		z-index: 1;
+		inset: 0;
+		container-type: size;
+		mix-blend-mode: screen;
+		pointer-events: none;
+	}
+
+	.ice-shine-mask {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		/* Keep the artwork boundary fixed while only the inner light sweeps. */
+		-webkit-mask: url("/illustrations/space/ice-frame.png") center / 100% 100% no-repeat;
+		mask: url("/illustrations/space/ice-frame.png") center / 100% 100% no-repeat;
+		mask-image: image-set(
+			url("/illustrations/space/ice-frame.avif") type("image/avif"),
+			url("/illustrations/space/ice-frame.png") type("image/png")
+		);
+		mask-mode: alpha;
+	}
+
+	.ice-shine-plane {
+		display: grid;
+		width: 100%;
+		height: 100%;
+		place-items: center;
 	}
 
 	.ice-shine {
@@ -132,25 +168,54 @@
 		);
 		clip-path: polygon(22% 0, 100% 8%, 72% 100%, 0 92%);
 		filter: blur(3px);
-		mix-blend-mode: screen;
 		opacity: 0;
 		pointer-events: none;
 		will-change: transform, opacity;
 	}
 
 	.about-content {
+		/* Preserve the original 3:2 ice at desktop size; reserve more vertical
+		   room as readable text wraps on narrower screens or uses larger fonts. */
+		--ice-flow-height: max(66.667cqw, calc(105em - 124cqw));
 		position: relative;
 		z-index: 2;
-		width: min(60%, 54ch);
-		max-width: 54ch;
-		padding: 0.45rem;
+		display: flow-root;
+		width: 100%;
+		height: var(--ice-flow-height);
 		color: #07102d;
 		font-family: "Montserrat", sans-serif;
-		font-size: clamp(0.86rem, 1.05vw, 1rem);
+		font-size: clamp(0.875rem, 1.8cqw, 1rem);
 		font-weight: 600;
-		line-height: 1.48;
+		line-height: 1.5;
 		text-align: left;
 		text-shadow: 0 1px 0 rgba(247, 251, 255, 0.46);
+	}
+
+	.about-copy {
+		margin: 0;
+		padding-top: calc(var(--ice-flow-height) * 0.29);
+		text-wrap: pretty;
+		overflow-wrap: anywhere;
+	}
+
+	/* Invisible floats reserve the bevels so native text, selection, and links
+	   flow between the contours. Coordinates follow the unrotated flat face. */
+	.ice-flow-edge {
+		width: 50%;
+		height: 100%;
+		shape-margin: 0.65em;
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.ice-flow-edge--left {
+		float: left;
+		shape-outside: polygon(0 0, 44% 0, 44% 26%, 38% 45%, 56% 69%, 70% 77%, 100% 85%, 100% 100%, 0 100%);
+	}
+
+	.ice-flow-edge--right {
+		float: right;
+		shape-outside: polygon(44% 0, 100% 0, 100% 100%, 0 100%, 0 85%, 20% 77%, 34% 69%, 60% 48%, 44% 29%);
 	}
 
 	.webring-link {
@@ -187,27 +252,55 @@
 			font-size: clamp(2.35rem, 12vw, 3rem);
 		}
 
-		.about-card {
-			aspect-ratio: 2 / 3;
-		}
-
 		.ice-art-picture {
-			width: 150%;
-			max-width: none;
-			height: auto;
-			transform: rotate(90deg);
+			container-type: size;
 		}
 
 		.ice-art {
-			height: auto;
-			object-fit: contain;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 100cqh;
+			height: 100cqw;
+			max-width: none;
+			transform: translate(-50%, -50%) rotate(90deg);
+		}
+
+		.ice-shine-mask {
+			/* Match the rotated image's dimensions in its size container. */
+			top: 50%;
+			left: 50%;
+			width: 100cqh;
+			height: 100cqw;
+			transform: translate(-50%, -50%) rotate(90deg);
+		}
+
+		.ice-shine-plane {
+			/* Restore screen coordinates so the existing sweep stays horizontal. */
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 100cqw;
+			height: 100cqh;
+			transform: translate(-50%, -50%) rotate(-90deg);
 		}
 
 		.about-content {
-			width: 62%;
-			padding: 0.25rem;
-			font-size: clamp(0.7rem, 3vw, 0.78rem);
-			line-height: 1.38;
+			--ice-flow-height: max(150cqw, calc(200em - 400cqw));
+			font-size: clamp(0.75rem, 3.2vw, 0.85rem);
+		}
+
+		.about-copy {
+			padding-top: calc(var(--ice-flow-height) * 0.25);
+		}
+
+		/* Match the flat face after the artwork rotates into portrait. */
+		.ice-flow-edge--left {
+			shape-outside: polygon(0 0, 62% 0, 62% 25%, 45% 42%, 42% 52%, 62% 69%, 82% 77%, 100% 85%, 100% 100%, 0 100%);
+		}
+
+		.ice-flow-edge--right {
+			shape-outside: polygon(56% 0, 100% 0, 100% 100%, 0 100%, 0 85%, 22% 77%, 40% 69%, 52% 50%, 56% 29%);
 		}
 
 		.ice-shine {
@@ -238,10 +331,49 @@
 	if (root) {
 		let active = true;
 		let cleanup = () => {};
+		const content = root.querySelector<HTMLElement>(".about-content");
+		const copy = root.querySelector<HTMLElement>(".about-copy");
+		let fitFrame = 0;
+		let lastFitKey = "";
+
+		const fitText = () => {
+			fitFrame = 0;
+			if (!active || !content || !copy) return;
+			const style = getComputedStyle(content);
+			const key = `${content.clientWidth}:${style.fontSize}:${style.lineHeight}`;
+			if (key === lastFitKey) return;
+			lastFitKey = key;
+
+			// Start with the compact CSS layout on every resize. Only enlarged
+			// text/font substitutions need extra height; never reduce font size.
+			content.style.removeProperty("--ice-flow-height");
+			let height = content.offsetHeight;
+			for (let attempt = 0; attempt < 8; attempt++) {
+				const textBottom = copy.offsetHeight;
+				if (textBottom <= height * 0.75) break;
+				height = Math.ceil(height * Math.max(1.08, textBottom / (height * 0.72)));
+				content.style.setProperty("--ice-flow-height", `${height}px`);
+			}
+		};
+
+		const requestTextFit = () => {
+			if (active && !fitFrame) fitFrame = requestAnimationFrame(fitText);
+		};
+		const onFontsLoaded = () => {
+			lastFitKey = "";
+			requestTextFit();
+		};
+		const textResizeObserver = new ResizeObserver(requestTextFit);
+		if (content) textResizeObserver.observe(content);
+		if (copy) textResizeObserver.observe(copy);
+		document.fonts.addEventListener("loadingdone", onFontsLoaded);
 
 		const onPageHide = (event: PageTransitionEvent) => {
 			if (!shouldTeardownOnPageHide(event.persisted)) return;
 			active = false;
+			cancelAnimationFrame(fitFrame);
+			textResizeObserver.disconnect();
+			document.fonts.removeEventListener("loadingdone", onFontsLoaded);
 			cleanup();
 		};
 
@@ -249,6 +381,8 @@
 
 		void document.fonts.ready.then(async () => {
 			if (!active) return;
+			lastFitKey = "";
+			fitText();
 
 			const { gsap } = await loadGsap();
 			if (!active) return;
@@ -316,14 +450,6 @@
 			}, root);
 
 			const media = gsap.matchMedia();
-			const body = document.body;
-			const enableCursor = () => body.classList.add("cursor-visible");
-			const disableCursor = () => body.classList.remove("cursor-visible");
-
-			root.addEventListener("pointerenter", enableCursor);
-			root.addEventListener("pointerleave", disableCursor);
-			root.addEventListener("focusin", enableCursor);
-			root.addEventListener("focusout", disableCursor);
 
 			if (panel) {
 				media.add(
@@ -387,16 +513,10 @@
 			if (!active) {
 				media.revert();
 				context.revert();
-				body.classList.remove("cursor-visible");
 				return;
 			}
 
 			cleanup = () => {
-				root.removeEventListener("pointerenter", enableCursor);
-				root.removeEventListener("pointerleave", disableCursor);
-				root.removeEventListener("focusin", enableCursor);
-				root.removeEventListener("focusout", disableCursor);
-				body.classList.remove("cursor-visible");
 				media.revert();
 				context.revert();
 			};

@@ -20,21 +20,23 @@ import astronautAnimation from "../../astronaut.json";
 		</div>
 	</div>
 
-	<div class="scroll-cue" data-scroll-cue aria-hidden="true">
-		<svg
-			viewBox="0 0 24 24"
-			width="24"
-			height="24"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<path
-				stroke="currentColor"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="1.7"
-				d="m7.5 9.5 4.5 4.5 4.5-4.5"></path>
-		</svg>
+	<div class="scroll-cue-anchor" data-scroll-cue-fade aria-hidden="true">
+		<div class="scroll-cue" data-scroll-cue>
+			<svg
+				viewBox="0 0 24 24"
+				width="24"
+				height="24"
+				fill="none"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				<path
+					stroke="currentColor"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="1.7"
+					d="m7.5 9.5 4.5 4.5 4.5-4.5"></path>
+			</svg>
+		</div>
 	</div>
 </section>
 
@@ -173,11 +175,18 @@ import astronautAnimation from "../../astronaut.json";
 		will-change: transform, opacity;
 	}
 
-	.scroll-cue {
+	.scroll-cue-anchor {
 		position: absolute;
-		bottom: clamp(2rem, 7vh, 4.5rem);
+		/* Reserve room for the fixed social fade, the halo, and the 9px bob. */
+		bottom: calc(clamp(7rem, 13svh, 9rem) + env(safe-area-inset-bottom, 0px));
 		left: 50%;
 		z-index: 4;
+		transform: translateX(-50%);
+		pointer-events: none;
+		will-change: opacity;
+	}
+
+	.scroll-cue {
 		display: grid;
 		width: 3rem;
 		height: 3rem;
@@ -189,7 +198,6 @@ import astronautAnimation from "../../astronaut.json";
 			0 0 0 5px rgba(66, 168, 255, 0.05),
 			0 0 24px rgba(98, 220, 255, 0.22);
 		color: var(--space-ice-cyan, #62dcff);
-		transform: translateX(-50%);
 		will-change: transform, opacity;
 	}
 
@@ -230,10 +238,11 @@ import astronautAnimation from "../../astronaut.json";
 			right: -0.75rem;
 			width: clamp(10rem, 46vw, 13rem);
 		}
+	}
 
-		.scroll-cue {
-			bottom: max(2.1rem, env(safe-area-inset-bottom));
-		}
+	@media (max-height: 600px) and (min-aspect-ratio: 1 / 1) {
+		/* Keep the centered name clear of the raised cue in landscape. */
+		.hero-copy { transform: translateY(clamp(-5rem, -6vw, -3.25rem)); }
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -244,6 +253,7 @@ import astronautAnimation from "../../astronaut.json";
 		.astronaut-flight,
 		.hero-intro,
 		#hero-name,
+		.scroll-cue-anchor,
 		.scroll-cue {
 			will-change: auto;
 		}
@@ -284,6 +294,23 @@ import astronautAnimation from "../../astronaut.json";
 			});
 
 			const context = gsap.context(() => {
+				// Scroll visibility has its own layer, independent of the entrance
+				// fade and bob, so reversing scroll always restores the cue.
+				gsap.fromTo(
+					"[data-scroll-cue-fade]",
+					{ autoAlpha: 1 },
+					{
+						autoAlpha: 0,
+						ease: "none",
+						scrollTrigger: {
+							trigger: root,
+							start: "top top",
+							end: "20% top",
+							scrub: profile.mode === "reduced" ? true : 0.25,
+						},
+					},
+				);
+
 				if (profile.mode === "reduced") {
 					gsap.set(
 						"[data-hero-intro], [data-hero-name], [data-scroll-cue], [data-astronaut-flight]",
@@ -353,14 +380,17 @@ import astronautAnimation from "../../astronaut.json";
 									duration: 1.15,
 								},
 								"<",
-							)
-							.from("[data-scroll-cue]", {
-								y: -8,
-								autoAlpha: 0,
-								duration: 0.4,
-							});
+							);
 						return timeline;
 					},
+				});
+
+				// Keep this one-time reveal out of SplitText's responsive rebuilds.
+				gsap.from("[data-scroll-cue]", {
+					autoAlpha: 0,
+					duration: 0.4,
+					delay: 2.2,
+					ease: "power2.out",
 				});
 
 				gsap.to("[data-scroll-cue]", {
@@ -369,17 +399,7 @@ import astronautAnimation from "../../astronaut.json";
 					yoyo: true,
 					repeat: -1,
 					ease: "sine.inOut",
-					delay: 2.2,
-				});
-
-				gsap.to("[data-scroll-cue]", {
-					autoAlpha: 0,
-					scrollTrigger: {
-						trigger: root,
-						start: "top top",
-						end: "20% top",
-						scrub: 0.2,
-					},
+					delay: 2.6,
 				});
 			}, root);
 
