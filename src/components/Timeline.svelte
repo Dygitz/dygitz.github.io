@@ -11,6 +11,10 @@
     getMeteorVariant,
     getSpaceMotionProfile,
   } from "../lib/spaceMotion";
+  import {
+    getOrbitGeometry,
+    getOrbitNodeYRadius,
+  } from "../lib/timelineGeometry";
 
   export let items = [
     {
@@ -65,6 +69,8 @@
     variant: getMeteorVariant(index),
   }));
 
+  $: orbitGeometry = getOrbitGeometry(cosmicItems.length);
+
   $: activeItem =
     activeIndex !== null && cosmicItems[activeIndex] ? cosmicItems[activeIndex] : null;
 
@@ -85,7 +91,9 @@
     let active = true;
     let animationContext;
     let motionMedia;
+    let orbitResizeObserver;
     let refreshFrame = 0;
+    let resizeFrame = 0;
 
     const initializeTimeline = async () => {
       const { gsap, ScrollTrigger } = await loadGsap();
@@ -93,6 +101,31 @@
       if (!active || !timelineRoot) return;
 
       const root = timelineRoot;
+      const orbit = root.querySelector(".orbit-line");
+
+      const syncOrbitNodeAspect = () => {
+        if (!orbit) return;
+
+        const bounds = orbit.getBoundingClientRect();
+        const yRadius = getOrbitNodeYRadius({
+          svgWidth: bounds.width,
+          svgHeight: bounds.height,
+          xRadius: 4.6,
+        });
+
+        root.querySelectorAll("[data-orbit-node]").forEach((node) => {
+          node.setAttribute("ry", String(yRadius));
+        });
+      };
+
+      syncOrbitNodeAspect();
+      if (orbit && typeof ResizeObserver !== "undefined") {
+        orbitResizeObserver = new ResizeObserver(() => {
+          if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
+          resizeFrame = window.requestAnimationFrame(syncOrbitNodeAspect);
+        });
+        orbitResizeObserver.observe(orbit);
+      }
 
       animationContext = gsap.context(() => {
         motionMedia = gsap.matchMedia();
@@ -110,6 +143,7 @@
             });
             const progress = root.querySelector("[data-timeline-progress]");
             const meteors = Array.from(root.querySelectorAll("[data-meteor]"));
+            const nodes = Array.from(root.querySelectorAll("[data-orbit-node]"));
 
             if (!progress) return;
 
@@ -121,6 +155,10 @@
                 if (trail) {
                   gsap.set(trail, { autoAlpha: 0.72, clearProps: "transform" });
                 }
+              });
+              gsap.set(nodes, {
+                autoAlpha: 1,
+                clearProps: "transform",
               });
               return;
             }
@@ -144,6 +182,7 @@
               const direction = meteor.dataset.side === "left" ? -1 : 1;
               const trail = meteor.querySelector("[data-meteor-trail]");
               const shellDrift = meteor.querySelector("[data-meteor-shell-drift]");
+              const node = nodes[index];
               const entrance = gsap.timeline({
                 defaults: { ease: "none" },
                 scrollTrigger: {
@@ -192,6 +231,20 @@
                   );
                 }
 
+                if (node) {
+                  entrance.fromTo(
+                    node,
+                    { scale: 0.55, autoAlpha: 0.28 },
+                    {
+                      scale: 1,
+                      autoAlpha: 1,
+                      transformOrigin: "50% 50%",
+                      duration: 0.42,
+                    },
+                    0.48,
+                  );
+                }
+
                 if (profile.ambientMotion && shellDrift) {
                   gsap.to(shellDrift, {
                     y: -3,
@@ -218,6 +271,19 @@
                     0.18,
                   );
                 }
+                if (node) {
+                  entrance.fromTo(
+                    node,
+                    { scale: 0.7, autoAlpha: 0.35 },
+                    {
+                      scale: 1,
+                      autoAlpha: 1,
+                      transformOrigin: "50% 50%",
+                      duration: 0.42,
+                    },
+                    0.5,
+                  );
+                }
               }
             });
           },
@@ -235,6 +301,10 @@
       if (refreshFrame) {
         window.cancelAnimationFrame(refreshFrame);
       }
+      if (resizeFrame) {
+        window.cancelAnimationFrame(resizeFrame);
+      }
+      orbitResizeObserver?.disconnect();
       motionMedia?.revert();
       animationContext?.revert();
     };
@@ -274,14 +344,25 @@
   <svg class="orbit-line" viewBox="0 0 100 1000" preserveAspectRatio="none" aria-hidden="true">
     <path
       class="orbit-line__track"
-      d="M50 0 C5 115 95 210 50 330 C5 450 95 545 50 665 C5 785 95 880 50 1000"
+      d={orbitGeometry.path}
     />
     <path
       class="orbit-line__progress"
       data-timeline-progress
       pathLength="1"
-      d="M50 0 C5 115 95 210 50 330 C5 450 95 545 50 665 C5 785 95 880 50 1000"
+      d={orbitGeometry.path}
     />
+    {#each orbitGeometry.nodes as node, index}
+      <ellipse
+        class="orbit-line__node"
+        data-orbit-node
+        data-index={index}
+        cx={node.x}
+        cy={node.y}
+        rx="4.6"
+        ry="2"
+      />
+    {/each}
   </svg>
 
   {#each cosmicItems as item (item.index)}
@@ -290,7 +371,6 @@
       data-meteor
       data-side={item.side}
       data-index={item.index}
-      style={`--node:${(item.index / Math.max(cosmicItems.length - 1, 1)) * 100}%`}
     >
       <picture
         class="meteor__trail"
@@ -333,22 +413,6 @@
         <span class="meteor__date">{item.dateRange}</span>
         <h3 class="meteor__title" id={`job-${item.index}-title`}>{item.title}</h3>
         <p class="meteor__company" id={`job-${item.index}-company`}>{item.company}</p>
-        {#if item.location}
-          <p class="meteor__location">{item.location}</p>
-        {/if}
-        {#if item.tagline}
-          <p class="meteor__tagline">{item.tagline}</p>
-        {/if}
-        {#if item.skills && item.skills.length > 0}
-          <ul class="meteor__skills" aria-label="Key skills">
-            {#each item.skills.slice(0, 3) as skill}
-              <li>{skill}</li>
-            {/each}
-            {#if item.skills.length > 3}
-              <li>+{item.skills.length - 3} more</li>
-            {/if}
-          </ul>
-        {/if}
         <button
           class="meteor__cta"
           type="button"
@@ -466,6 +530,17 @@
     filter: drop-shadow(0 0 7px rgba(98, 220, 255, 0.85));
   }
 
+  .orbit-line__node {
+    fill: var(--space-ice-cyan, #62dcff);
+    stroke: rgba(247, 251, 255, 0.98);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 0 7px rgba(98, 220, 255, 0.95));
+    transform-box: fill-box;
+    transform-origin: center;
+    will-change: transform, opacity;
+  }
+
   .meteor {
     position: relative;
     width: min(47.5%, 540px);
@@ -479,24 +554,6 @@
 
   .meteor[data-side="left"] { margin-right: auto; }
   .meteor[data-side="right"] { margin-left: auto; }
-
-  .meteor::before {
-    content: "";
-    position: absolute;
-    top: 49%;
-    width: 0.72rem;
-    aspect-ratio: 1;
-    border: 2px solid rgba(247, 251, 255, 0.96);
-    border-radius: 50%;
-    background: var(--space-ice-cyan, #62dcff);
-    box-shadow: 0 0 0 5px rgba(98, 220, 255, 0.12), 0 0 18px rgba(98, 220, 255, 0.95);
-    transform: translateY(-50%);
-    pointer-events: none;
-    z-index: 4;
-  }
-
-  .meteor[data-side="left"]::before { right: -0.18rem; }
-  .meteor[data-side="right"]::before { left: -0.18rem; }
 
   .meteor__shell-drift {
     position: absolute;
@@ -533,13 +590,14 @@
     height: auto;
     pointer-events: none;
     will-change: transform, opacity;
-    z-index: -1;
+    z-index: 0;
   }
 
   .meteor__trail-art {
     display: block;
     width: 100%;
     height: auto;
+    transform-origin: center;
   }
 
   .meteor[data-side="left"] .meteor__trail {
@@ -549,13 +607,14 @@
 
   .meteor[data-side="right"] .meteor__trail {
     left: 77%;
-    transform: rotate(180deg);
     transform-origin: 0 50%;
   }
 
+  .meteor[data-side="right"] .meteor__trail-art { transform: scaleX(-1); }
+
   .meteor__content {
     position: absolute;
-    inset: 15% 14% 14% 15%;
+    inset: 18% 16% 17% 18%;
     display: flex;
     min-width: 0;
     flex-direction: column;
@@ -572,7 +631,7 @@
     margin-bottom: 0.38rem;
     color: var(--space-ice-cyan, #62dcff);
     font-family: "Sora", sans-serif;
-    font-size: clamp(0.58rem, 0.8vw, 0.72rem);
+    font-size: clamp(0.62rem, 0.85vw, 0.76rem);
     font-weight: 600;
     letter-spacing: 0.11em;
     line-height: 1.35;
@@ -583,7 +642,7 @@
     margin: 0 0 0.2rem;
     color: var(--space-text, #f7fbff);
     font-family: "Sora", sans-serif;
-    font-size: clamp(0.96rem, 1.45vw, 1.3rem);
+    font-size: clamp(1.05rem, 1.55vw, 1.38rem);
     font-weight: 700;
     letter-spacing: -0.025em;
     line-height: 1.12;
@@ -593,40 +652,9 @@
     margin: 0 0 0.36rem;
     color: var(--space-ice-cyan, #62dcff);
     font-family: "Sora", sans-serif;
-    font-size: clamp(0.76rem, 1.05vw, 0.95rem);
+    font-size: clamp(0.82rem, 1.08vw, 0.98rem);
     font-style: italic;
     font-weight: 600;
-    line-height: 1.25;
-  }
-
-  .meteor__location,
-  .meteor__tagline {
-    margin: 0 0 0.26rem;
-    color: var(--space-muted, #b8c8e5);
-    font-family: "Montserrat", sans-serif;
-    font-size: clamp(0.64rem, 0.82vw, 0.76rem);
-    line-height: 1.32;
-  }
-
-  .meteor__tagline { color: rgba(98, 220, 255, 0.92); font-weight: 600; }
-
-  .meteor__skills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.28rem;
-    margin: 0.18rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .meteor__skills li {
-    padding: 0.18rem 0.38rem;
-    border: 1px solid rgba(98, 220, 255, 0.55);
-    border-radius: 3px;
-    background: rgba(4, 7, 25, 0.36);
-    color: #d9f7ff;
-    font-family: "Montserrat", sans-serif;
-    font-size: clamp(0.52rem, 0.66vw, 0.63rem);
     line-height: 1.25;
   }
 
@@ -641,7 +669,7 @@
     background: transparent;
     color: var(--space-trail-highlight, #ffbd66);
     font-family: "Sora", sans-serif;
-    font-size: 0.6rem;
+    font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.13em;
     text-transform: uppercase;
@@ -855,12 +883,13 @@
       transform: none;
     }
 
+    .orbit-line__node { stroke-width: 5; }
+
     .meteor { width: 100%; margin-block: clamp(1.8rem, 8vw, 3rem); }
 
     .meteor[data-side="left"],
     .meteor[data-side="right"] { margin-inline: auto; }
 
-    .meteor::before { left: -1.78rem; right: auto; width: 0.58rem; }
     .meteor[data-side="left"] .meteor__shell { transform: none; }
 
     .meteor__trail,
@@ -870,18 +899,15 @@
       right: auto;
       left: -1.35rem;
       width: 32%;
-      transform: rotate(180deg);
       transform-origin: 0 50%;
     }
 
-    .meteor__content { inset: 12% 9% 9% 12%; }
+    .meteor[data-side="right"] .meteor__trail-art { transform: none; }
+
+    .meteor__content { inset: 14% 9% 10% 12%; }
     .meteor__date { margin-bottom: 0.3rem; font-size: clamp(0.6875rem, 2.6vw, 0.75rem); }
     .meteor__title { font-size: clamp(1rem, 4.2vw, 1.18rem); }
     .meteor__company { margin-bottom: 0.3rem; font-size: clamp(0.75rem, 3.2vw, 0.88rem); }
-
-    .meteor__location,
-    .meteor__tagline,
-    .meteor__skills { display: none; }
 
     .meteor__cta { margin-top: 0.35rem; font-size: clamp(0.6875rem, 2.6vw, 0.75rem); }
     .experience-modal { padding: 1.4rem; max-height: 90vh; }
@@ -896,6 +922,7 @@
     }
 
     .meteor,
+    .orbit-line__node,
     .meteor__shell-drift,
     .meteor__trail {
       transform: none !important;

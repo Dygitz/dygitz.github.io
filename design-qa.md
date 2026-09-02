@@ -59,6 +59,12 @@ Every comparison places the approved source and implementation in the same raste
 - Persisted `pagehide` events preserve the hero and About animation setup for back-forward-cache restoration, while non-persisted page exits still perform full cleanup.
 - Reduced-motion emulation produced stable hero and Experience screenshots across a 900 ms interval. The astronaut, ice, heading, and all eight meteors were visible; every meteor had opacity `1`, visibility `visible`, and no transform; document scroll behavior was `auto`.
 - The production-preview console was empty across desktop, mobile, and reduced-motion passes.
+- At the reported 912 × 656 hero viewport, the complete name occupied `x=211.34…700.64` and remained inside the viewport. SplitText produced 11 unclipped character elements, while the line—not each glyph—provides the reveal mask.
+- The name shimmer uses a matching text layer with `background-clip: text`; its animated highlight cannot paint across the rectangular name container. The hero illustration uses a bottom alpha mask to taper into the starfield.
+- About copy measured 20.08% inset from both horizontal ice edges, with more than 31% vertical breathing room above and below.
+- The meteor surface now shows only date, title, company, and the detail action. All eight dialogs retain location, specialization, skills, and full descriptions.
+- Every one of the eight orbit nodes is generated from the same geometry as the SVG path. Maximum sampled node-to-path distance was `0.104` viewBox units, maximum node-to-meteor-edge gap was `6px`, and resize compensation kept marker aspect ratios within `0.99998…1.00001`.
+- The right-side trail extended `273.25px` beyond its meteor in the desktop regression and remained below the shell (`z-index 0` versus `1`).
 
 ## Findings and iteration history
 
@@ -69,6 +75,9 @@ Every comparison places the approved source and implementation in the same raste
 5. The detail overlay was replaced by a native top-layer dialog with exact focus restoration; mobile information density and type sizes were adjusted; AVIF/lazy-loading sources were added; and interaction was narrowed to the visible action button.
 6. The same review identified a P3 back-forward-cache lifecycle issue. The hero and About sections now distinguish persisted navigation from true teardown, with focused lifecycle tests.
 7. Final browser QA confirmed modal isolation, Escape/backdrop focus restoration, selectable meteor text, AVIF delivery, responsive type, an empty console, and stable reduced-motion rendering.
+8. Screenshot feedback exposed seven additional composition defects: character-mask clipping, a rectangular name shimmer, an abrupt hero-art boundary, an over-wide ice copy area, overloaded meteor summaries, a right-side trail transformed into the shell, and orbit markers positioned independently from their path.
+9. The hero now uses line masks and a glyph-clipped shimmer; the nebula fades through an alpha mask; About uses a measured central safe area; meteor summaries defer secondary data to the dialog; trail orientation lives on the image while GSAP scales its wrapper; and a shared geometry module produces both the orbit and its markers.
+10. A browser regression was captured failing before the fixes, then passed after them. Focused geometry tests were added and the regenerated desktop, mobile, full-page, modal, and reduced-motion captures passed with an empty console.
 
 Remaining P0 findings: none.
 
