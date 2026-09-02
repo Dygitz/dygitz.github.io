@@ -62,3 +62,7 @@ export function getSpaceMotionProfile(input: {
 export function getMeteorVariant(index: number): 1 | 2 | 3 {
   return ((index % 3) + 1) as 1 | 2 | 3;
 }
+
+export function getMeteorScrollEnd(): "center 68%" {
+  return "center 68%";
+}

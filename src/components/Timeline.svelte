@@ -1,7 +1,11 @@
 <script>
   import { onDestroy, onMount, tick } from "svelte";
   import { loadGsap } from "../lib/gsapClient";
-  import { getMeteorVariant, getSpaceMotionProfile } from "../lib/spaceMotion";
+  import {
+    getMeteorScrollEnd,
+    getMeteorVariant,
+    getSpaceMotionProfile,
+  } from "../lib/spaceMotion";
 
   export let items = [
     {
@@ -139,7 +143,7 @@
                 scrollTrigger: {
                   trigger: meteor,
                   start: "top 82%",
-                  end: "center 58%",
+                  end: getMeteorScrollEnd(),
                   scrub: profile.scrollScrub,
                 },
               });
