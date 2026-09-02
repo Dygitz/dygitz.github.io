@@ -10,6 +10,18 @@ export interface Job {
 
 export const jobs: Job[] = [
   {
+    dateRange: "May 2026 - Aug 2026 · 4 mos",
+    title: "Software Engineer Intern (Post Trade)",
+    company: "BitGo",
+    location: "New York, New York, United States",
+    skills: ["Go", "AWS RDS/DMS", "Grafana", "Kafka", "TypeScript"],
+    description: [
+      "Migrated 5M+ rows on a 24/7 live trading platform, replacing cross-database writes with atomic transactions.",
+      "Automated token onboarding through a centralized asset registry, eliminating manual configuration.",
+      "Eliminated Kafka consumer-group rebalance loops with Kubernetes health probes and improved on-call alerts.",
+    ],
+  },
+  {
     dateRange: "Sep 2025 - Dec 2025 · 4 mos",
     title: "Software Engineer Intern",
     company: "Super.com",
