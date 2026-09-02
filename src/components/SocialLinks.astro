@@ -6,15 +6,31 @@ import Email from './email.svelte';
 
 <div class="social-links-container">
 	<div id="links">
-		<a href="https://www.linkedin.com/in/dominik-ritz/" target="_blank">
+		<a
+			href="https://www.linkedin.com/in/dominik-ritz/"
+			target="_blank"
+			rel="noopener noreferrer"
+			aria-label="Dominik Ritz on LinkedIn"
+		>
 			<Linkedin width="50px" height="50px" />
 		</a>
-		<a href="https://github.com/Dygitz" target="_blank">
+		<a
+			href="https://github.com/Dygitz"
+			target="_blank"
+			rel="noopener noreferrer"
+			aria-label="Dominik Ritz on GitHub"
+		>
 			<Github width="50px" height="50px" />
 		</a>
 	</div>
 	<div id="email-container">
-		<a id="email" href="mailto:dom_ritz@icloud.com" target="_blank">
+		<a
+			id="email"
+			href="mailto:dom_ritz@icloud.com"
+			target="_blank"
+			rel="noopener noreferrer"
+			aria-label="Email Dominik Ritz"
+		>
 			<Email width="80px" height="60px" />
 		</a>
 	</div>
@@ -52,14 +68,32 @@ import Email from './email.svelte';
 		z-index: 4;
 	}
 
-	#links a {
-		color: transparent;
+	.social-links-container a {
+		border-radius: 0.5rem;
+		color: var(--space-text-primary, #f7fbff);
 		display: inline-flex;
+		outline: 2px solid transparent;
+		outline-offset: 4px;
+		transition:
+			background-color 180ms ease,
+			box-shadow 180ms ease,
+			color 180ms ease;
 	}
 
-	:global(.links-icons:hover path) {
-		fill: #6d18e2;
-		transition: fill 0.4s ease;
+	.social-links-container a :global(.links-icons path) {
+		fill: currentColor;
+		transition: fill 180ms ease;
+	}
+
+	.social-links-container a:hover {
+		color: var(--space-violet, #8b5cf6);
+	}
+
+	.social-links-container a:focus-visible {
+		outline-color: var(--space-ice-cyan, #62dcff);
+		background: rgba(98, 220, 255, 0.08);
+		box-shadow: 0 0 0 5px rgba(98, 220, 255, 0.12);
+		color: var(--space-ice-cyan, #62dcff);
 	}
 
 	#email-container {
@@ -113,6 +147,13 @@ import Email from './email.svelte';
 		#email svg {
 			width: 56px;
 			height: auto;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.social-links-container a,
+		.social-links-container a :global(.links-icons path) {
+			transition: none;
 		}
 	}
 </style>
