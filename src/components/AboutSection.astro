@@ -9,13 +9,21 @@
 >
 	<h2 id="about-title" class="about-title" data-about-title>About Me</h2>
 	<div class="about-card" data-ice-panel>
-		<img
-			class="ice-art"
-			src="/illustrations/space/ice-frame.png"
-			alt=""
-			data-ice-art
-			decoding="async"
-		/>
+		<picture class="ice-art-picture" data-ice-art>
+			<source
+				srcset="/illustrations/space/ice-frame.avif"
+				type="image/avif"
+			/>
+			<img
+				class="ice-art"
+				src="/illustrations/space/ice-frame.png"
+				width="1536"
+				height="1024"
+				alt=""
+				loading="lazy"
+				decoding="async"
+			/>
+		</picture>
 		<span class="ice-shine" data-ice-shine aria-hidden="true"></span>
 		<div class="about-content">
 			I'm a passionate software engineer with a focus on AI. I'm currently a
@@ -85,21 +93,27 @@
 		will-change: transform, opacity;
 	}
 
-	.ice-art,
+	.ice-art-picture,
 	.ice-shine,
 	.about-content {
 		grid-area: 1 / 1;
 	}
 
-	.ice-art {
+	.ice-art-picture {
 		position: relative;
 		z-index: 0;
 		display: block;
 		width: 100%;
 		height: 100%;
-		object-fit: fill;
 		pointer-events: none;
 		user-select: none;
+	}
+
+	.ice-art {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: fill;
 	}
 
 	.ice-shine {
@@ -177,12 +191,16 @@
 			aspect-ratio: 2 / 3;
 		}
 
-		.ice-art {
+		.ice-art-picture {
 			width: 150%;
 			max-width: none;
 			height: auto;
-			object-fit: contain;
 			transform: rotate(90deg);
+		}
+
+		.ice-art {
+			height: auto;
+			object-fit: contain;
 		}
 
 		.about-content {
@@ -212,6 +230,7 @@
 
 <script>
 	import { loadGsap } from "../lib/gsapClient";
+	import { shouldTeardownOnPageHide } from "../lib/pageLifecycle";
 	import { getSpaceMotionProfile } from "../lib/spaceMotion";
 
 	const root = document.querySelector<HTMLElement>("[data-about-section]");
@@ -220,12 +239,13 @@
 		let active = true;
 		let cleanup = () => {};
 
-		const onPageHide = () => {
+		const onPageHide = (event: PageTransitionEvent) => {
+			if (!shouldTeardownOnPageHide(event.persisted)) return;
 			active = false;
 			cleanup();
 		};
 
-		window.addEventListener("pagehide", onPageHide, { once: true });
+		window.addEventListener("pagehide", onPageHide);
 
 		void document.fonts.ready.then(async () => {
 			if (!active) return;

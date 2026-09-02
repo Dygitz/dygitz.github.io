@@ -292,22 +292,42 @@
       data-index={item.index}
       style={`--node:${(item.index / Math.max(cosmicItems.length - 1, 1)) * 100}%`}
     >
-      <img
+      <picture
         class="meteor__trail"
         data-meteor-trail
-        src="/illustrations/space/meteor-trail.png"
-        width="2172"
-        height="724"
-        alt=""
-      />
-      <span class="meteor__shell-drift" data-meteor-shell-drift aria-hidden="true">
-        <img
-          class="meteor__shell"
-          src={`/illustrations/space/meteor-shell-${item.variant}.png`}
-          width="1448"
-          height="1086"
-          alt=""
+      >
+        <source
+          srcset="/illustrations/space/meteor-trail.avif"
+          type="image/avif"
         />
+        <img
+          class="meteor__trail-art"
+          src="/illustrations/space/meteor-trail.png"
+          width="2172"
+          height="724"
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
+      <span class="meteor__shell-drift" data-meteor-shell-drift aria-hidden="true">
+        <picture
+          class="meteor__shell"
+        >
+          <source
+            srcset={`/illustrations/space/meteor-shell-${item.variant}.avif`}
+            type="image/avif"
+          />
+          <img
+            class="meteor__shell-art"
+            src={`/illustrations/space/meteor-shell-${item.variant}.png`}
+            width="1448"
+            height="1086"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
       </span>
       <div class="meteor__content">
         <span class="meteor__date">{item.dateRange}</span>
@@ -492,9 +512,15 @@
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
     pointer-events: none;
     transform-origin: center;
+  }
+
+  .meteor__shell-art {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .meteor[data-side="left"] .meteor__shell { transform: scaleX(-1); }
@@ -508,6 +534,12 @@
     pointer-events: none;
     will-change: transform, opacity;
     z-index: -1;
+  }
+
+  .meteor__trail-art {
+    display: block;
+    width: 100%;
+    height: auto;
   }
 
   .meteor[data-side="left"] .meteor__trail {
