@@ -103,9 +103,10 @@
 		if (tornDown) return;
 		tornDown = true;
 		active = false;
+		document.body.classList.add("cursor-visible");
 
 		document.removeEventListener("DOMContentLoaded", start);
-		window.removeEventListener("pagehide", teardown);
+		window.removeEventListener("pagehide", onPageHide);
 		removePointerListener();
 		removeResizeListener();
 		if (meteorInterval) window.clearInterval(meteorInterval);
@@ -113,6 +114,12 @@
 		cursorYTo?.tween.kill();
 		context?.revert();
 		destroyApplication();
+	};
+
+	const onPageHide = (event: PageTransitionEvent) => {
+		// The browser freezes live resources while the document is in bfcache.
+		if (event.persisted) return;
+		teardown();
 	};
 
 	const initialize = async () => {
@@ -571,11 +578,10 @@
 			if (!active) return;
 			console.error("Unable to initialize the star field", error);
 			teardown();
-			document.body.classList.add("cursor-visible");
 		});
 	}
 
-	window.addEventListener("pagehide", teardown, { once: true });
+	window.addEventListener("pagehide", onPageHide);
 	if (document.readyState === "loading") {
 		document.addEventListener("DOMContentLoaded", start, { once: true });
 	} else {
