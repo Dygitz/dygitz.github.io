@@ -9,26 +9,48 @@ export interface Props {
 const { jobs } = Astro.props;
 ---
 
-<section class="experience-section">
-	<h2 class="experience-title">
+<section class="experience-section" aria-labelledby="experience-title">
+	<h2 class="experience-title" id="experience-title">
 		Experience
 	</h2>
-	<!-- Ensure client-side rendering for transitions -->
 	<Timeline client:load items={jobs} />
 </section>
 
 <style>
 	.experience-section {
-		padding-top: 6rem;
 		position: relative;
+		padding-top: clamp(6rem, 10vw, 9rem);
+		overflow: clip;
 		z-index: 3;
 	}
 
 	.experience-title {
-		text-align: center; 
-		color: #fff; 
-		font-family: "Sora", sans-serif; 
-		font-size: 3.5rem;
-		margin-bottom: 2rem;
+		position: relative;
+		width: fit-content;
+		margin: 0 auto clamp(1rem, 3vw, 2.5rem);
+		color: var(--space-text, #f7fbff);
+		font-family: "Sora", sans-serif;
+		font-size: clamp(2.6rem, 6vw, 4.5rem);
+		font-weight: 700;
+		letter-spacing: -0.045em;
+		line-height: 1;
+		text-align: center;
+		text-shadow: 0 0 32px rgba(139, 92, 246, 0.2);
+	}
+
+	.experience-title::after {
+		content: "";
+		display: block;
+		width: clamp(2.8rem, 6vw, 4.4rem);
+		height: 3px;
+		margin: 1.15rem auto 0;
+		background: linear-gradient(90deg, var(--space-violet, #8b5cf6), var(--space-ice-cyan, #62dcff));
+		box-shadow: 0 0 16px rgba(98, 220, 255, 0.48);
+	}
+
+	@media (max-width: 767px) {
+		.experience-section {
+			padding-top: 5rem;
+		}
 	}
 </style>
