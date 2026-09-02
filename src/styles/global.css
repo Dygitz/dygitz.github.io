@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+:root {
+	--space-page-base: #040719;
+	--space-deep-space: #07102d;
+	--space-surface-navy: #0b1533;
+	--space-ice-cyan: #62dcff;
+	--space-electric-blue: #42a8ff;
+	--space-violet: #8b5cf6;
+	--space-magenta: #d15cff;
+	--space-meteor-purple: #35285f;
+	--space-trail-orange: #ff744b;
+	--space-trail-highlight: #ffbd66;
+	--space-text-primary: #f7fbff;
+	--space-text-muted: #b8c8e5;
+}
+
 *,
 *::before,
 *::after {
@@ -12,4 +27,36 @@ body {
 	padding: 0;
 	width: 100%;
 	overflow-x: hidden;
+}
+
+html body {
+	background-color: var(--space-page-base);
+	background-image:
+		radial-gradient(
+			1200px circle at 15% 10%,
+			rgba(139, 92, 246, 0.25),
+			transparent 60%
+		),
+		radial-gradient(
+			900px circle at 85% 25%,
+			rgba(98, 220, 255, 0.15),
+			transparent 55%
+		),
+		radial-gradient(
+			1000px circle at 50% 85%,
+			rgba(209, 92, 255, 0.14),
+			transparent 65%
+		),
+		radial-gradient(
+			1400px circle at 70% 70%,
+			rgba(66, 168, 255, 0.12),
+			transparent 70%
+		),
+		linear-gradient(
+			180deg,
+			var(--space-page-base) 0%,
+			var(--space-deep-space) 48%,
+			var(--space-page-base) 100%
+		);
+	color: var(--space-text-primary);
 }
