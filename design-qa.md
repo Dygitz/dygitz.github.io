@@ -42,7 +42,7 @@ Every comparison places the approved source and implementation in the same raste
 | Fonts and typography | Pass | Sora supplies the display hierarchy and Montserrat keeps body copy compact and readable. One visible `h1` is used; section titles remain clearly subordinate. |
 | Spacing and layout | Pass | Hero, About, and Experience retain deliberate breathing room. Alternating meteors remain attached to the orbit path. At 390 px, the hero wraps cleanly, the ice panel becomes portrait-oriented without distortion, and the modal stays inside the viewport. |
 | Colors and tokens | Pass | Navy, violet, cyan, white, and orange remain consistent across illustrations, typography, focus states, trail effects, and the modal. Contrast stays legible on the illustrated surfaces. |
-| Image quality and assets | Pass | The selected style is carried by purpose-made raster illustrations rather than literal copies of the boards. Assets remain crisp at their rendered desktop and mobile sizes, preserve aspect ratio, and avoid photorealism. |
+| Image quality and assets | Pass | The selected style is carried by purpose-made raster illustrations rather than literal copies of the boards. Assets remain crisp at their rendered desktop and mobile sizes, preserve aspect ratio, and avoid photorealism. Modern AVIF sources reduce the six illustrated assets from roughly 6.5 MiB of PNGs to roughly 572 KiB, with PNG fallbacks retained. |
 | Copy and content | Pass | Existing biography and all eight job records remain intact. Long titles, employers, locations, tags, and detail copy fit without clipping; overflow skills are summarized on the meteor and remain available in the modal. |
 | Motion | Pass | GSAP coordinates the name reveal, hero flight, ice reveal, orbit progress, and meteor arrivals. Native scrolling is retained with no pinning or scroll hijacking. Motion is transform/opacity based and reversible when scrolling. |
 
@@ -50,9 +50,13 @@ Every comparison places the approved source and implementation in the same raste
 
 - Desktop and mobile document widths exactly matched their viewports (1440/1440 and 390/390); no horizontal overflow was present.
 - All eight job meteors were present and reachable.
-- Each meteor opens its detail dialog. The close button, Escape key, and backdrop close it, and focus returns to the exact originating meteor.
+- Each meteor exposes a visible button that opens its native modal dialog. Meteor copy remains selectable outside that button.
+- The close button, Escape key, and backdrop close the dialog, and focus returns to the exact originating meteor. An eight-step forward-tab smoke test never reached the social links behind the modal.
 - The mobile modal measured 358 × 418 pixels at `(16, 212.97)` within the 390 × 844 viewport.
+- At 390 px, the compact meteor preserves readable type: 12.48 px company, 11 px date and action, and 16.38 px title. Location, tagline, and skills move into the dialog rather than being compressed onto the meteor.
 - LinkedIn, GitHub, email, and biography links remained visible, labeled, keyboard reachable, and functional.
+- The six illustration requests resolved as AVIF with HTTP 200 responses; none fell back to PNG in the test browser. Below-the-fold ice and meteor imagery uses native lazy loading.
+- Persisted `pagehide` events preserve the hero and About animation setup for back-forward-cache restoration, while non-persisted page exits still perform full cleanup.
 - Reduced-motion emulation produced stable hero and Experience screenshots across a 900 ms interval. The astronaut, ice, heading, and all eight meteors were visible; every meteor had opacity `1`, visibility `visible`, and no transform; document scroll behavior was `auto`.
 - The production-preview console was empty across desktop, mobile, and reduced-motion passes.
 
@@ -61,6 +65,10 @@ Every comparison places the approved source and implementation in the same raste
 1. The first formal full-page pass exposed a P2 motion completion issue: at maximum desktop scroll, the final meteor stopped at opacity `0.7716` with a residual transform because its reveal endpoint sat slightly below the available scroll range.
 2. The meteor reveal endpoint was moved from `center 58%` to `center 68%` and covered by a focused unit test.
 3. At the same maximum-scroll state after the fix, the final meteor measured opacity `1` with an identity transform. The full comparison and reduced-motion evidence were regenerated from the production build.
+4. A whole-branch review found four P2 production issues: focus could escape the custom overlay, mobile meteor metadata was undersized, the six eager PNGs added roughly 6.5 MiB, and the full-card trigger intercepted text selection.
+5. The detail overlay was replaced by a native top-layer dialog with exact focus restoration; mobile information density and type sizes were adjusted; AVIF/lazy-loading sources were added; and interaction was narrowed to the visible action button.
+6. The same review identified a P3 back-forward-cache lifecycle issue. The hero and About sections now distinguish persisted navigation from true teardown, with focused lifecycle tests.
+7. Final browser QA confirmed modal isolation, Escape/backdrop focus restoration, selectable meteor text, AVIF delivery, responsive type, an empty console, and stable reduced-motion rendering.
 
 Remaining P0 findings: none.
 

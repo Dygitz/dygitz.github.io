@@ -55,8 +55,13 @@ import astronautAnimation from "../../astronaut.json";
 		position: absolute;
 		inset: 0;
 		z-index: -1;
-		background: url("/illustrations/space/nebula-edges.png") center / cover
-			no-repeat;
+		background-image: image-set(
+			url("/illustrations/space/nebula-edges.avif") type("image/avif"),
+			url("/illustrations/space/nebula-edges.png") type("image/png")
+		);
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: cover;
 		content: "";
 		opacity: 0.34;
 		pointer-events: none;
@@ -225,6 +230,7 @@ import astronautAnimation from "../../astronaut.json";
 
 <script>
 	import { loadGsap } from "../lib/gsapClient";
+	import { shouldTeardownOnPageHide } from "../lib/pageLifecycle";
 	import { getSpaceMotionProfile } from "../lib/spaceMotion";
 
 	const root = document.querySelector<HTMLElement>("[data-hero-section]");
@@ -233,12 +239,13 @@ import astronautAnimation from "../../astronaut.json";
 		let active = true;
 		let cleanup = () => {};
 
-		const onPageHide = () => {
+		const onPageHide = (event: PageTransitionEvent) => {
+			if (!shouldTeardownOnPageHide(event.persisted)) return;
 			active = false;
 			cleanup();
 		};
 
-		window.addEventListener("pagehide", onPageHide, { once: true });
+		window.addEventListener("pagehide", onPageHide);
 
 		void document.fonts.ready.then(async () => {
 			if (!active) return;
