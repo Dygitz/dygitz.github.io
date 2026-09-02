@@ -133,7 +133,7 @@
             meteors.forEach((meteor, index) => {
               const direction = meteor.dataset.side === "left" ? -1 : 1;
               const trail = meteor.querySelector("[data-meteor-trail]");
-              const shell = meteor.querySelector(".meteor__shell");
+              const shellDrift = meteor.querySelector("[data-meteor-shell-drift]");
               const entrance = gsap.timeline({
                 defaults: { ease: "none" },
                 scrollTrigger: {
@@ -182,8 +182,8 @@
                   );
                 }
 
-                if (profile.ambientMotion && shell) {
-                  gsap.to(shell, {
+                if (profile.ambientMotion && shellDrift) {
+                  gsap.to(shellDrift, {
                     y: -3,
                     rotation: direction * 0.55,
                     duration: 3.8 + (index % 3) * 0.45,
@@ -301,13 +301,15 @@
         height="724"
         alt=""
       />
-      <img
-        class="meteor__shell"
-        src={`/illustrations/space/meteor-shell-${item.variant}.png`}
-        width="1448"
-        height="1086"
-        alt=""
-      />
+      <span class="meteor__shell-drift" data-meteor-shell-drift aria-hidden="true">
+        <img
+          class="meteor__shell"
+          src={`/illustrations/space/meteor-shell-${item.variant}.png`}
+          width="1448"
+          height="1086"
+          alt=""
+        />
+      </span>
       <div class="meteor__content">
         <span class="meteor__date">{item.dateRange}</span>
         <h3 class="meteor__title" id={`job-${item.index}-title`}>{item.title}</h3>
@@ -492,17 +494,23 @@
     box-shadow: 0 0 0 9px rgba(98, 220, 255, 0.16);
   }
 
-  .meteor__shell {
+  .meteor__shell-drift {
     position: absolute;
     inset: 0;
+    display: block;
+    pointer-events: none;
+    transform-origin: center;
+    will-change: transform;
+    z-index: 1;
+  }
+
+  .meteor__shell {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
     pointer-events: none;
     transform-origin: center;
-    will-change: transform;
-    z-index: 1;
   }
 
   .meteor[data-side="left"] .meteor__shell { transform: scaleX(-1); }
@@ -866,7 +874,7 @@
     }
 
     .meteor,
-    .meteor__shell,
+    .meteor__shell-drift,
     .meteor__trail {
       transform: none !important;
       will-change: auto;
@@ -876,6 +884,10 @@
 
     .experience-modal-overlay,
     .experience-modal { animation: none; }
+
+    .meteor__cta {
+      transform: none !important;
+    }
 
     .meteor__cta,
     .modal__close { transition: none; }
