@@ -9,6 +9,20 @@ export interface SpaceMotionProfile {
   ambientMotion: boolean;
 }
 
+export interface LottiePlaybackPolicy {
+  autoplay: boolean;
+  loop: boolean;
+  staticFrame: number | null;
+}
+
+export function getLottiePlaybackPolicy(
+  reducedMotion: boolean,
+): LottiePlaybackPolicy {
+  return reducedMotion
+    ? { autoplay: false, loop: false, staticFrame: 0 }
+    : { autoplay: true, loop: true, staticFrame: null };
+}
+
 export function getSpaceMotionProfile(input: {
   reducedMotion: boolean;
   viewportWidth: number;

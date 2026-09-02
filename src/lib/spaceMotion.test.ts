@@ -1,5 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { getMeteorVariant, getSpaceMotionProfile } from "./spaceMotion";
+import {
+  getLottiePlaybackPolicy,
+  getMeteorVariant,
+  getSpaceMotionProfile,
+} from "./spaceMotion";
+
+describe("getLottiePlaybackPolicy", () => {
+  it("uses a stable frame when reduced motion is requested", () => {
+    expect(getLottiePlaybackPolicy(true)).toEqual({
+      autoplay: false,
+      loop: false,
+      staticFrame: 0,
+    });
+  });
+
+  it("keeps ambient playback when reduced motion is not requested", () => {
+    expect(getLottiePlaybackPolicy(false)).toEqual({
+      autoplay: true,
+      loop: true,
+      staticFrame: null,
+    });
+  });
+});
 
 describe("getSpaceMotionProfile", () => {
   it("disables decorative motion when reduced motion is requested", () => {

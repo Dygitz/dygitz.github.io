@@ -1,21 +1,43 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import lottie from "lottie-web";
+  import { getLottiePlaybackPolicy } from "../lib/spaceMotion";
 
   export let animationData: object;
 
   let container: HTMLDivElement;
 
   onMount(() => {
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    const initialPolicy = getLottiePlaybackPolicy(reducedMotion.matches);
     const animation = lottie.loadAnimation({
       container,
       renderer: "svg",
-      loop: true,
-      autoplay: true,
+      loop: initialPolicy.loop,
+      autoplay: initialPolicy.autoplay,
       animationData,
     });
 
-    return () => animation.destroy();
+    const applyMotionPreference = () => {
+      const policy = getLottiePlaybackPolicy(reducedMotion.matches);
+      animation.setLoop(policy.loop);
+
+      if (policy.staticFrame !== null) {
+        animation.goToAndStop(policy.staticFrame, true);
+      } else {
+        animation.play();
+      }
+    };
+
+    applyMotionPreference();
+    reducedMotion.addEventListener("change", applyMotionPreference);
+
+    return () => {
+      reducedMotion.removeEventListener("change", applyMotionPreference);
+      animation.destroy();
+    };
   });
 </script>
 
