@@ -144,6 +144,12 @@ import astronautAnimation from "../../astronaut.json";
 		-webkit-text-fill-color: transparent;
 	}
 
+	#hero-name :global(.hero-line-mask) {
+		/* Tight tracking leaves glyph ink outside the line's measured width. */
+		margin-inline: -0.1em;
+		padding-inline: 0.1em;
+	}
+
 	.name-shine {
 		position: relative;
 		z-index: 2;
@@ -330,6 +336,9 @@ import astronautAnimation from "../../astronaut.json";
 					smartWrap: true,
 					autoSplit: true,
 					onSplit(self) {
+						// The chars supply the gradient now; clipping a second background
+						// through transformed split wrappers can paint stray rectangles.
+						gsap.set(self.elements, { backgroundImage: "none" });
 						const getCharacterColor = (index: number) =>
 							gsap.utils.interpolate(
 								"#8b5cf6",
