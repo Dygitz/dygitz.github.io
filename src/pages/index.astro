@@ -4,8 +4,10 @@ import StarField from "../components/StarField.astro";
 import HeroSection from "../components/HeroSection.astro";
 import SocialLinks from "../components/SocialLinks.astro";
 import AboutSection from "../components/AboutSection.astro";
+import ProjectsSection from "../components/ProjectsSection.astro";
 import ExperienceSection from "../components/ExperienceSection.astro";
 import { jobs } from "../data/jobs";
+import { projects } from "../data/projects";
 ---
 
 <!doctype html>
@@ -45,6 +47,7 @@ import { jobs } from "../data/jobs";
 		<HeroSection />
 		<SocialLinks />
 		<AboutSection />
+		<ProjectsSection projects={projects} />
 		<ExperienceSection jobs={jobs} />
 	</body>
 </html>
