@@ -1,5 +1,5 @@
 ---
-
+import AboutBio from "./AboutBio.astro";
 ---
 
 <section
@@ -31,28 +31,34 @@
 				</div>
 			</div>
 		</div>
+		<button class="about-intro" type="button" aria-haspopup="dialog" aria-controls="about-dialog">
+			<span class="intro-title">Software Engineer</span>
+			<span class="intro-school">University of Waterloo</span>
+			<span class="intro-action">Read more</span>
+		</button>
 		<div class="about-content">
 			<span class="ice-flow-edge ice-flow-edge--left" aria-hidden="true"></span>
 			<span class="ice-flow-edge ice-flow-edge--right" aria-hidden="true"></span>
 			<p class="about-copy">
-				I'm a passionate software engineer with a focus on AI. I'm currently a
-				3B{" "}<a
-					class="webring-link"
-					href="https://se-webring.xyz/"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Software Engineering student at the University of Waterloo
-				</a>.
-				The unknown piques my interest and I'm always eager to learn new things. In
-				my free time, I keep up with the latest AI research, often reading papers
-				on arXiv. Outside of academics, I like cooking, traveling, working out at
-				the gym, and playing volleyball. I'm always looking for opportunities
-				to learn and grow, so feel free to reach out—I'm happy to connect!
+				<AboutBio />
 			</p>
 		</div>
 	</div>
 </section>
+
+<dialog id="about-dialog" class="experience-modal-overlay" aria-labelledby="about-dialog-title">
+	<div class="experience-modal">
+		<form method="dialog">
+			<button class="modal__close" aria-label="Close about details" autofocus>
+				<span aria-hidden="true">×</span>
+			</button>
+		</form>
+		<header class="modal__header">
+			<h2 class="modal__title" id="about-dialog-title">About Me</h2>
+		</header>
+		<p class="modal__description dialog-copy"><AboutBio /></p>
+	</div>
+</dialog>
 
 <style>
 	.about-section {
@@ -218,93 +224,78 @@
 		shape-outside: polygon(44% 0, 100% 0, 100% 100%, 0 100%, 0 85%, 20% 77%, 34% 69%, 60% 48%, 44% 29%);
 	}
 
-	.webring-link {
-		border-radius: 0.15em;
-		color: #211351;
-		font-weight: 700;
-		text-decoration-color: rgba(53, 40, 95, 0.64);
-		text-decoration-line: underline;
-		text-decoration-style: dotted;
-		text-decoration-thickness: 0.1em;
-		text-underline-offset: 0.18em;
-		transition:
-			color 180ms ease,
-			background-color 180ms ease;
+	.about-intro {
+		display: none;
 	}
 
-	.webring-link:hover {
-		color: #5428bc;
+	.dialog-copy :global(.webring-link) {
+		color: #62dcff;
+		text-decoration-color: currentColor;
 	}
 
-	.webring-link:focus-visible {
-		outline: 2px solid #211351;
-		outline-offset: 3px;
-		background: rgba(247, 251, 255, 0.34);
-		color: #5428bc;
+	.dialog-copy :global(.webring-link:focus-visible) {
+		outline: 2px solid #62dcff;
+		outline-offset: 4px;
 	}
 
 	@media (max-width: 639px) {
 		.about-section {
-			padding-inline: 0.5rem;
+			min-height: auto;
+			padding: 4rem 0.5rem;
 		}
 
 		.about-title {
 			font-size: clamp(2.35rem, 12vw, 3rem);
 		}
 
-		.ice-art-picture {
-			container-type: size;
-		}
-
-		.ice-art {
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			width: 100cqh;
-			height: 100cqw;
-			max-width: none;
-			transform: translate(-50%, -50%) rotate(90deg);
-		}
-
-		.ice-shine-mask {
-			/* Match the rotated image's dimensions in its size container. */
-			top: 50%;
-			left: 50%;
-			width: 100cqh;
-			height: 100cqw;
-			transform: translate(-50%, -50%) rotate(90deg);
-		}
-
-		.ice-shine-plane {
-			/* Restore screen coordinates so the existing sweep stays horizontal. */
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			width: 100cqw;
-			height: 100cqh;
-			transform: translate(-50%, -50%) rotate(-90deg);
-		}
-
 		.about-content {
-			--ice-flow-height: max(150cqw, calc(200em - 400cqw));
-			font-size: clamp(0.75rem, 3.2vw, 0.85rem);
+			display: none;
 		}
 
-		.about-copy {
-			padding-top: calc(var(--ice-flow-height) * 0.25);
+		.about-intro {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			width: 100%;
+			min-height: 66.667cqw;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 0.5rem;
+			padding: 20% 19% 22%;
+			border: 0;
+			background: transparent;
+			color: #07102d;
+			font-family: "Montserrat", sans-serif;
+			text-align: center;
+			cursor: pointer;
+			-webkit-tap-highlight-color: transparent;
 		}
 
-		/* Match the flat face after the artwork rotates into portrait. */
-		.ice-flow-edge--left {
-			shape-outside: polygon(0 0, 62% 0, 62% 25%, 45% 42%, 42% 52%, 62% 69%, 82% 77%, 100% 85%, 100% 100%, 0 100%);
+		.intro-title {
+			font-size: clamp(1rem, 4.5cqw, 1.6rem);
+			font-weight: 700;
+			line-height: 1.35;
 		}
 
-		.ice-flow-edge--right {
-			shape-outside: polygon(56% 0, 100% 0, 100% 100%, 0 100%, 0 85%, 22% 77%, 40% 69%, 52% 50%, 56% 29%);
+		.intro-school {
+			font-size: max(0.75rem, 3.2cqw);
+			font-weight: 600;
+			line-height: 1.4;
 		}
 
-		.ice-shine {
-			height: 70%;
+		.intro-action {
+			margin-top: 0.2rem;
+			font-size: 0.75rem;
+			font-weight: 600;
+			text-decoration: underline;
+			text-underline-offset: 3px;
+		}
+
+		.about-intro:focus-visible {
+			outline: 2px solid #07102d;
+			outline-offset: -3rem;
+			border-radius: 35%;
 		}
 	}
 
@@ -329,6 +320,30 @@
 	const root = document.querySelector<HTMLElement>("[data-about-section]");
 
 	if (root) {
+		const trigger = root.querySelector<HTMLButtonElement>(".about-intro");
+		const dialog = document.querySelector<HTMLDialogElement>("#about-dialog");
+		const mobile = window.matchMedia("(max-width: 639px)");
+		let previousOverflow = "";
+		const openBio = () => {
+			if (!dialog || dialog.open || !mobile.matches) return;
+			previousOverflow = document.documentElement.style.overflow;
+			dialog.showModal();
+			document.documentElement.style.overflow = "hidden";
+		};
+		const restoreScroll = () => {
+			document.documentElement.style.overflow = previousOverflow;
+		};
+		const closeOnDesktop = () => {
+			if (!mobile.matches && dialog?.open) dialog.close();
+		};
+		const closeOnBackdrop = (event: MouseEvent) => {
+			if (event.target !== dialog || !dialog) return;
+			dialog.close();
+		};
+		trigger?.addEventListener("click", openBio);
+		dialog?.addEventListener("close", restoreScroll);
+		dialog?.addEventListener("click", closeOnBackdrop);
+		mobile.addEventListener("change", closeOnDesktop);
 		let active = true;
 		let cleanup = () => {};
 		const content = root.querySelector<HTMLElement>(".about-content");
@@ -338,7 +353,7 @@
 
 		const fitText = () => {
 			fitFrame = 0;
-			if (!active || !content || !copy) return;
+			if (!active || !content || !copy || mobile.matches) return;
 			const style = getComputedStyle(content);
 			const key = `${content.clientWidth}:${style.fontSize}:${style.lineHeight}`;
 			if (key === lastFitKey) return;
@@ -370,6 +385,14 @@
 
 		const onPageHide = (event: PageTransitionEvent) => {
 			if (!shouldTeardownOnPageHide(event.persisted)) return;
+			if (dialog?.open) {
+				dialog.close();
+				restoreScroll();
+			}
+			trigger?.removeEventListener("click", openBio);
+			dialog?.removeEventListener("close", restoreScroll);
+			dialog?.removeEventListener("click", closeOnBackdrop);
+			mobile.removeEventListener("change", closeOnDesktop);
 			active = false;
 			cancelAnimationFrame(fitFrame);
 			textResizeObserver.disconnect();
