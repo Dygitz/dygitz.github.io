@@ -77,6 +77,7 @@
 <script>
 	import { Application, Container, Graphics } from "pixi.js";
 	import { loadGsap } from "../lib/gsapClient";
+	import { advanceMobileMeteor } from "../lib/mobileMeteor";
 
 	const root = document.querySelector<HTMLElement>("[data-star-field-root]");
 
@@ -91,6 +92,7 @@
 	let cursorYTo;
 	let removePointerListener = () => {};
 	let removeResizeListener = () => {};
+	let removeVisibilityListener = () => {};
 
 	const destroyApplication = () => {
 		if (!app || !appInitialized) return;
@@ -110,6 +112,7 @@
 		window.removeEventListener("pagehide", onPageHide);
 		removePointerListener();
 		removeResizeListener();
+		removeVisibilityListener();
 		if (meteorInterval) window.clearInterval(meteorInterval);
 		cursorXTo?.tween.kill();
 		cursorYTo?.tween.kill();
@@ -147,7 +150,9 @@
 			// Quality knobs:
 			antialias: true,                  // smoother vector edges
 			autoDensity: true,                // scales canvas CSS size vs backing pixels
-			resolution: Math.min(devicePixelRatio, 2), // cap at 2 to avoid huge textures
+			// Match Retina phones instead of upscaling a 2x canvas on a 3x screen.
+			// Keep the existing desktop pixel budget.
+			resolution: Math.min(devicePixelRatio, isMobile ? 3 : 2),
 			powerPreference: 'high-performance'
 		});
 		appInitialized = true;
@@ -181,6 +186,13 @@
 		function createStarGraphics(size, opacity) {
 			const star = new Graphics();
 
+			if (isMobile) {
+				// A single antialiased point stays crisp at phone scale.
+				star.circle(0, 0, size);
+				star.fill({ color: 0xffffff, alpha: opacity });
+				return star;
+			}
+
 			// Create glow effect using multiple circles
 			star.circle(0, 0, size * 1.5);
 			star.fill({ color: 0xffffff, alpha: opacity * 0.1 });
@@ -198,7 +210,10 @@
 		for (let i = 0; i < starCount; i++) {
 			const x = Math.random() * window.innerWidth;
 			const y = Math.random() * window.innerHeight;
-			const size = 1.5 + Math.random() * 1.0;
+			// Small points read as stars on phones; desktop keeps its larger glow.
+			const size = isMobile
+				? 0.65 + Math.random() * 0.6
+				: 1.5 + Math.random() * 1.0;
 			const angle = Math.random() * 2 * Math.PI;
 			const speed = 0.1;
 			const xVelocity = speed * Math.cos(angle);
@@ -273,7 +288,7 @@
 		}
 
 		// Add meteors periodically
-		meteorInterval = window.setInterval(() => {
+		const spawnMeteor = () => {
 			if (meteorArray.length >= 3) {
 				const oldMeteor = meteorArray.shift();
 				meteorsContainer.removeChild(oldMeteor.graphics);
@@ -298,26 +313,33 @@
 				opacityChange,
 			};
 
-			const meteorGraphics = createMeteorGraphics(meteor);
+			// Build the mobile trail once; fade the display object on each frame.
+			const meteorGraphics = createMeteorGraphics(
+				isMobile ? { ...meteor, opacity: 1 } : meteor,
+			);
+			if (isMobile) meteorGraphics.alpha = 0;
 			meteorGraphics.x = x;
 			meteorGraphics.y = y;
 			meteorsContainer.addChild(meteorGraphics);
 
 			meteor.graphics = meteorGraphics;
 			meteorArray.push(meteor);
-		}, 2000);
+		};
+		meteorInterval = window.setInterval(spawnMeteor, 2000);
 
 		if (isMobile) {
-			// Mobile animation (simple)
-			app.ticker.add(() => {
+			// Keep native resolution without redrawing at 120 Hz on ProMotion phones.
+			app.ticker.maxFPS = 60;
+			app.ticker.add((ticker) => {
 				const now = Date.now();
+				const frameStep = ticker.deltaTime;
 
 				starArray.forEach((star) => {
 					const progress = ((now - star.startTime) % star.duration) / star.duration;
 					const easedProgress = 1 - Math.pow(1 - progress, 3);
 
 					// Update opacity (twinkling)
-					star.opacity += star.opacityChange;
+					star.opacity += star.opacityChange * frameStep;
 					if (star.opacity > 1) {
 						star.opacity = 1;
 						star.opacityChange = -star.opacityChange;
@@ -327,8 +349,8 @@
 					}
 
 					// Update position
-					star.x += star.xVelocity * easedProgress;
-					star.y += star.yVelocity * easedProgress;
+					star.x += star.xVelocity * easedProgress * frameStep;
+					star.y += star.yVelocity * easedProgress * frameStep;
 
 					// Wrap around edges
 					if (star.x < 0) star.x = window.innerWidth;
@@ -345,36 +367,36 @@
 				// Update meteors
 				for (let i = meteorArray.length - 1; i >= 0; i--) {
 					const meteor = meteorArray[i];
-					meteor.x -= meteor.speed * Math.cos(meteor.angle);
-					meteor.y += meteor.speed * Math.sin(meteor.angle);
-					meteor.opacity += meteor.opacityChange;
-
-					if (meteor.opacity > 1) {
-						meteor.opacity = 1;
-						meteor.opacityChange = -meteor.opacityChange;
-					} else if (meteor.opacity < -0.1) {
+					if (!advanceMobileMeteor(meteor, ticker.deltaMS)) {
 						meteorsContainer.removeChild(meteor.graphics);
 						meteor.graphics.destroy();
 						meteorArray.splice(i, 1);
 						continue;
 					}
 
-					// Update graphics only when opacity significantly changes (optimization)
-					if (!meteor.lastOpacityUpdate || Math.abs(meteor.opacity - meteor.lastOpacityUpdate) > 0.1) {
-						meteorsContainer.removeChild(meteor.graphics);
-						meteor.graphics.destroy();
-						meteor.graphics = createMeteorGraphics(meteor);
-						meteor.graphics.x = meteor.x;
-						meteor.graphics.y = meteor.y;
-						meteorsContainer.addChild(meteor.graphics);
-						meteor.lastOpacityUpdate = meteor.opacity;
-					} else {
-						// Just update position for better performance
-						meteor.graphics.x = meteor.x;
-						meteor.graphics.y = meteor.y;
-					}
+					meteor.graphics.x = meteor.x;
+					meteor.graphics.y = meteor.y;
+					meteor.graphics.alpha = meteor.opacity;
 				}
 			});
+
+			const syncVisibility = () => {
+				if (!active) return;
+				if (document.hidden) {
+					app.stop();
+					window.clearInterval(meteorInterval);
+					meteorInterval = 0;
+				} else {
+					app.start();
+					if (!meteorInterval) {
+						meteorInterval = window.setInterval(spawnMeteor, 2000);
+					}
+				}
+			};
+			document.addEventListener("visibilitychange", syncVisibility);
+			removeVisibilityListener = () =>
+				document.removeEventListener("visibilitychange", syncVisibility);
+			syncVisibility();
 		} else {
 			// Desktop with black hole effects
 			let blackholeX = 0;
