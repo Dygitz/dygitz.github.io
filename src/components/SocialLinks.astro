@@ -109,4 +109,19 @@ import Email from './email.svelte';
   @media (prefers-reduced-motion: reduce) {
     .social-dock a { transition: none; }
   }
+
+  @media (max-width: 767px) {
+    .social-dock {
+      left: 50%;
+      bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+      /* Separate centering from the entrance animation's transform. */
+      translate: -50% 0;
+      gap: 0.5rem;
+      padding: 0.25rem 0.625rem;
+      border-color: rgba(184, 200, 229, 0.2);
+      border-radius: 999px;
+      background: rgba(7, 12, 35, 0.78);
+      box-shadow: inset 0 1px 0 rgba(247, 251, 255, 0.04);
+    }
+  }
 </style>
