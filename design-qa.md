@@ -134,3 +134,13 @@ Remaining P1 findings: none.
 Remaining P2 findings: none.
 
 final result: passed
+
+
+## Glass social dock — 2026-09-05
+
+- Replaced the full-width footer fade and large icons with a compact translucent dock fixed 20px from the bottom-left edge.
+- GitHub, LinkedIn and email keep their existing destinations; all links have 44px targets and visible keyboard focus.
+- Dock fades in and rises 8px once over 450ms, after a 1.6s delay synchronized with hero initialization. Reduced-motion users skip the animation; keyboard focus reveals links immediately.
+- Browser checks covered 390 × 844 mobile, 527 × 790 portrait and 1440 × 900 desktop. Dock remained fixed after scrolling 1580px.
+- Production build passed; existing lottie-web eval warning remains.
+- Reduced-motion behavior verified through CSS scope; native safe areas and external destinations were not separately exercised.

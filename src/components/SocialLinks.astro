@@ -1,159 +1,112 @@
 ---
-import Github from './github.svelte';
-import Linkedin from './linkedin.svelte';
 import Email from './email.svelte';
 ---
 
-<div class="social-links-container">
-	<div id="links">
-		<a
-			href="https://www.linkedin.com/in/dominik-ritz/"
-			target="_blank"
-			rel="noopener noreferrer"
-			aria-label="Dominik Ritz on LinkedIn"
-		>
-			<Linkedin width="50px" height="50px" />
-		</a>
-		<a
-			href="https://github.com/Dygitz"
-			target="_blank"
-			rel="noopener noreferrer"
-			aria-label="Dominik Ritz on GitHub"
-		>
-			<Github width="50px" height="50px" />
-		</a>
-	</div>
-	<div id="email-container">
-		<a
-			id="email"
-			href="mailto:dom_ritz@icloud.com"
-			target="_blank"
-			rel="noopener noreferrer"
-			aria-label="Email Dominik Ritz"
-		>
-			<Email width="80px" height="60px" />
-		</a>
-	</div>
-</div>
+<nav class="social-dock" aria-label="Social and contact links">
+  <a
+    href="https://github.com/Dygitz"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Dominik Ritz on GitHub"
+    title="GitHub"
+  >
+    <span class="social-icon github-icon" aria-hidden="true"></span>
+  </a>
+  <a
+    href="https://www.linkedin.com/in/dominik-ritz/"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Dominik Ritz on LinkedIn"
+    title="LinkedIn"
+  >
+    <span class="social-icon linkedin-icon" aria-hidden="true"></span>
+  </a>
+  <a href="mailto:dom_ritz@icloud.com" aria-label="Email Dominik Ritz" title="Email">
+    <span class="email-icon" aria-hidden="true">
+      <Email width="24px" height="24px" fill="currentColor" />
+    </span>
+  </a>
+</nav>
 
 <style>
-	.social-links-container {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		width: auto;
-		box-sizing: border-box;
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-end;
-		padding: 10px 12px;
-		background: linear-gradient(
-			to top,
-			rgba(4, 4, 10, 0.98) 0%,
-			rgba(6, 6, 18, 0.9) 45%,
-			rgba(8, 8, 22, 0.6) 70%,
-			transparent 100%
-		);
-		z-index: 100;
-	}
+  .social-dock {
+    position: fixed;
+    left: max(20px, env(safe-area-inset-left, 0px));
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border: 1px solid rgba(139, 92, 246, 0.5);
+    border-top-color: rgba(150, 166, 255, 0.48);
+    border-left-color: rgba(98, 220, 255, 0.42);
+    border-radius: 20px;
+    background: rgba(7, 12, 35, 0.68);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    box-shadow: inset 0 1px 0 rgba(247, 251, 255, 0.04), 0 6px 20px rgba(2, 4, 16, 0.2);
+  }
 
-	#links {
-		display: flex;
-		align-items: flex-end;
-		gap: 0.6vw;
-		min-width: 0;
-		width: auto;
-		text-align: left;
-		z-index: 4;
-	}
+  .social-dock a {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    color: var(--space-text-primary, #f7fbff);
+    outline: 2px solid transparent;
+    outline-offset: 1px;
+    transition: color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  }
 
-	.social-links-container a {
-		border-radius: 0.5rem;
-		color: var(--space-text-primary, #f7fbff);
-		display: inline-flex;
-		outline: 2px solid transparent;
-		outline-offset: 4px;
-		transition:
-			background-color 180ms ease,
-			box-shadow 180ms ease,
-			color 180ms ease;
-	}
+  .social-dock a:hover,
+  .social-dock a:focus-visible {
+    color: var(--space-ice-cyan, #62dcff);
+    background: rgba(98, 220, 255, 0.08);
+    box-shadow: inset 0 0 14px rgba(98, 220, 255, 0.04);
+  }
 
-	.social-links-container a :global(.links-icons path) {
-		fill: currentColor;
-		transition: fill 180ms ease;
-	}
+  .social-dock a:focus-visible {
+    outline-color: var(--space-ice-cyan, #62dcff);
+  }
 
-	.social-links-container a:hover {
-		color: var(--space-violet, #8b5cf6);
-	}
+  .social-icon {
+    display: block;
+    width: 22px;
+    height: 22px;
+    background-color: currentColor;
+    -webkit-mask: var(--icon) center / contain no-repeat;
+    mask: var(--icon) center / contain no-repeat;
+  }
 
-	.social-links-container a:focus-visible {
-		outline-color: var(--space-ice-cyan, #62dcff);
-		background: rgba(98, 220, 255, 0.08);
-		box-shadow: 0 0 0 5px rgba(98, 220, 255, 0.12);
-		color: var(--space-ice-cyan, #62dcff);
-	}
+  .github-icon { --icon: url('/icons/social/github.svg'); }
+  .linkedin-icon { --icon: url('/icons/social/linkedin.svg'); width: 26px; height: 26px; }
+  .email-icon { display: flex; }
 
-	#email-container {
-		display: flex;
-		align-items: flex-end;
-		min-width: 0;
-		padding: 0;
-		z-index: 100;
-	}
+  @keyframes dock-enter {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-	#email {
-		border: none;
-		border-radius: 5px;
-		cursor: pointer;
-		margin-left: 1vw;
-		display: inline-flex;
-	}
+  @media (prefers-reduced-motion: no-preference) {
+    .social-dock {
+      animation: dock-enter 450ms cubic-bezier(0.22, 1, 0.36, 1) 1.6s backwards;
+    }
 
-	#links svg,
-	#email svg {
-		display: block;
-	}
+    /* Start the delay with the hero, after its fonts and animation are ready. */
+    :global(html[data-hero-entrance="pending"]) .social-dock {
+      animation-play-state: paused;
+    }
 
-	/* Mobile responsive */
-	@media (max-width: 767px) {
-		.social-links-container {
-			padding: 12px 16px;
-			align-items: flex-end;
-		}
+    /* Keyboard users can reach the links immediately, even during the delay. */
+    .social-dock:focus-within {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
 
-		#links {
-			margin: 0;
-			display: flex;
-			align-items: flex-end;
-			gap: 10px;
-			flex: 1;
-		}
-
-		#links svg {
-			width: 40px;
-			height: 40px;
-		}
-
-		#email-container {
-			padding: 0;
-			display: flex;
-			justify-content: flex-end;
-			flex: 1;
-		}
-
-		#email svg {
-			width: 56px;
-			height: auto;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.social-links-container a,
-		.social-links-container a :global(.links-icons path) {
-			transition: none;
-		}
-	}
+  @media (prefers-reduced-motion: reduce) {
+    .social-dock a { transition: none; }
+  }
 </style>
