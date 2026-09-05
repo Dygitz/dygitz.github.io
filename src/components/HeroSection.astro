@@ -202,7 +202,7 @@ import astronautAnimation from "../../astronaut.json";
 
 	.scroll-cue-anchor {
 		position: absolute;
-		/* Reserve room for the fixed social fade, the halo, and the 9px bob. */
+		/* Keep the scroll cue above the social dock, including its halo and bob. */
 		bottom: calc(clamp(7rem, 13svh, 9rem) + env(safe-area-inset-bottom, 0px));
 		left: 50%;
 		z-index: 4;
