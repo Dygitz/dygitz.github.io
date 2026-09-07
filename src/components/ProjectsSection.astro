@@ -1,0 +1,59 @@
+---
+import OrbitalGallery from "./OrbitalGallery.svelte";
+import type { Project } from "../data/projects";
+
+export interface Props {
+  projects: Project[];
+}
+
+const { projects } = Astro.props;
+---
+
+<section id="projects" class="projects-section" aria-labelledby="projects-title">
+  <p class="projects-kicker">Mission archive</p>
+  <h2 id="projects-title" class="projects-title">Projects</h2>
+  <p class="projects-intro">Select a mission and launch into the work.</p>
+  <OrbitalGallery client:load projects={projects} />
+</section>
+
+<style>
+  .projects-section {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 6rem 2rem 2rem;
+    position: relative;
+    z-index: 3;
+  }
+
+  .projects-kicker {
+    margin: 0 0 0.65rem;
+    color: rgba(103, 232, 249, 0.86);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .projects-title {
+    margin: 0 0 0.85rem;
+    color: #fff;
+    font-family: "Sora", sans-serif;
+    font-size: 3.5rem;
+    text-align: center;
+  }
+
+  .projects-intro {
+    margin: 0 auto 2.5rem;
+    color: rgba(226, 232, 240, 0.76);
+    font-size: 1rem;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  @media (max-width: 767px) {
+    .projects-title {
+      font-size: 2.5rem;
+    }
+  }
+</style>
