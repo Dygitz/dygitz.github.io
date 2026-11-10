@@ -26,6 +26,15 @@ import Email from './email.svelte';
       <Email width="24px" height="24px" fill="currentColor" />
     </span>
   </a>
+  <a
+    href="/resume.pdf"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="View resume (PDF, opens in a new tab)"
+    title="Resume (PDF)"
+  >
+    <span class="social-icon resume-icon" aria-hidden="true"></span>
+  </a>
 </nav>
 
 <style>
@@ -82,6 +91,7 @@ import Email from './email.svelte';
 
   .github-icon { --icon: url('/icons/social/github.svg'); }
   .linkedin-icon { --icon: url('/icons/social/linkedin.svg'); width: 26px; height: 26px; }
+  .resume-icon { --icon: url('/icons/social/resume.svg'); }
   .email-icon { display: flex; }
 
   @keyframes dock-enter {
